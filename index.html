@@ -5,23 +5,28 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>ITパスポート クイズ</title>
   <style>
-    body { font-family: sans-serif; margin: 20px; background: #fff; color: #000; }
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif; margin: 20px; background: #fff; color: #111; }
+    h2 { margin-top: 0; }
     .question { font-size: 18px; margin-bottom: 16px; }
     .option { display: block; width: 100%; margin: 8px 0; padding: 12px; font-size: 16px;
-              border: 1px solid #ccc; border-radius: 6px; background: #f9f9f9; text-align: left; }
+              border: 1px solid #ccc; border-radius: 8px; background: #f9f9f9; text-align: left; cursor: pointer; }
+    .option:hover { background: #f1f5f9; }
     .option.correct { background: #d1fae5; border-color: #10b981; }
     .option.wrong { background: #fee2e2; border-color: #ef4444; }
     #feedback { margin-top: 12px; font-weight: bold; }
     #explanation { margin-top: 8px; font-size: 14px; color: #333; }
+    #start button { margin-right: 8px; margin-bottom: 8px; padding: 10px 14px; border-radius: 8px; border: 1px solid #ccc; background: #f9f9f9; cursor: pointer; }
+    #start button:disabled { opacity: 0.6; cursor: not-allowed; }
   </style>
 </head>
 <body>
   <div id="start">
     <h2>分野を選んでください</h2>
-    <button onclick="startQuiz('ストラテジ')">ストラテジ</button>
-    <button onclick="startQuiz('マネジメント')">マネジメント</button>
-    <button onclick="startQuiz('テクノロジ')">テクノロジ</button>
-    <button onclick="startQuiz('all')">全分野</button>
+    <p id="loading">読み込み中…</p>
+    <button onclick="startQuiz('ストラテジ')" disabled>ストラテジ</button>
+    <button onclick="startQuiz('マネジメント')" disabled>マネジメント</button>
+    <button onclick="startQuiz('テクノロジ')" disabled>テクノロジ</button>
+    <button onclick="startQuiz('all')" disabled>全分野</button>
   </div>
 
   <div id="quiz" style="display:none;">
@@ -32,53 +37,99 @@
   </div>
 
   <script>
+  // 設定
+  const NUM_QUESTIONS_PER_RUN = 30; // 1回の出題数（分野ごと）
+
+  // 状態
   let allQuestions = [];
   let questions = [];
   let idx = 0;
   let score = 0;
 
+  // 起動時にCSVをロード
+  loadCSV();
+
+  // CSVロード＆パース
   async function loadCSV() {
-    const res = await fetch('questions.csv');
-    const text = await res.text();
-    const lines = text.trim().split('\n').slice(1);
-    allQuestions = lines.map(line => {
-      const cols = line.split(',');
-      return {
-        q: cols[1],
-        options: [cols[2], cols[3], cols[4], cols[5]],
-        answer: parseInt(cols[6], 10) - 1,
-        explanation: cols[7],
-        tag: cols[8]
-      };
-    });
+    toggleStartButtons(false);
+    const loadingP = document.getElementById('loading');
+    try {
+      const res = await fetch('questions.csv', { cache: 'no-store' });
+      if (!res.ok) throw new Error('questions.csv を取得できませんでした');
+      // BOM除去
+      const raw = (await res.text()).replace(/^\uFEFF/, '');
+      // 行へ分割（CRLF/LF両対応）、末尾空行除外
+      const lines = raw.split(/\r?\n/).filter(line => line.trim() !== '');
+      // 簡易CSVパース（クォート・カンマ対応）
+      const rows = parseCSV(lines);
+      if (rows.length < 2) throw new Error('CSVにデータ行がありません');
+
+      // ヘッダ確認（任意：最低9列）
+      const header = rows[0];
+      const body = rows.slice(1);
+
+      // 列不足行を除外してマッピング
+      allQuestions = body
+        .filter(cols => cols.length >= 9)
+        .map(cols => ({
+          q: cols[1],
+          options: [cols[2], cols[3], cols[4], cols[5]],
+          answer: parseInt(cols[6], 10) - 1,
+          explanation: cols[7],
+          tag: cols[8]
+        }));
+
+      // ログ（必要に応じて確認用）
+      console.log('総数:', allQuestions.length);
+      console.log('ストラテジ:', allQuestions.filter(q => q.tag === 'ストラテジ').length);
+      console.log('マネジメント:', allQuestions.filter(q => q.tag === 'マネジメント').length);
+      console.log('テクノロジ:', allQuestions.filter(q => q.tag === 'テクノロジ').length);
+
+      loadingP.textContent = '読み込み完了';
+      toggleStartButtons(true);
+      setTimeout(()=>{ loadingP.remove(); }, 500);
+    } catch (e) {
+      console.error(e);
+      loadingP.textContent = '読み込みに失敗しました。CSVの配置や形式を確認してください。';
+    }
   }
 
+  // 分野開始
   function startQuiz(tag) {
     document.getElementById('start').style.display = 'none';
     document.getElementById('quiz').style.display = 'block';
 
     let pool = (tag === 'all') ? allQuestions : allQuestions.filter(q => q.tag === tag);
 
-    // シャッフルして20問抽出
+    // シャッフル
     pool = shuffle(pool);
-    questions = pool.slice(0, 20);
+
+    // 30問 or ある分だけ
+    const n = Math.min(NUM_QUESTIONS_PER_RUN, pool.length);
+    questions = pool.slice(0, n);
+
+    // 空配列ガード
+    if (questions.length === 0) {
+      alert('この分野の問題がありません。CSVの tags と分野ボタンの表記が一致しているか確認してください。\n（ストラテジ／マネジメント／テクノロジ）');
+      location.reload();
+      return;
+    }
 
     idx = 0;
     score = 0;
     showQuestion();
   }
 
-  function shuffle(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-  }
-
+  // 問題表示（境界ガード付き）
   function showQuestion() {
+    if (idx < 0 || idx >= questions.length) {
+      showResult();
+      return;
+    }
     const q = questions[idx];
-    document.getElementById('qText').textContent = `Q${idx+1}. ${q.q}`;
+    if (!q) { showResult(); return; }
+
+    document.getElementById('qText').textContent = `Q${idx + 1}. ${q.q}`;
     const optDiv = document.getElementById('options');
     optDiv.innerHTML = '';
     q.options.forEach((opt, i) => {
@@ -92,6 +143,7 @@
     document.getElementById('explanation').textContent = '';
   }
 
+  // 回答チェック
   function checkAnswer(i) {
     const q = questions[idx];
     const opts = document.querySelectorAll('.option');
@@ -116,18 +168,70 @@
       } else {
         showResult();
       }
-    }, 2000);
+    }, 1200);
   }
 
+  // 結果表示
   function showResult() {
+    const total = questions.length;
+    const rate = Math.round((score / total) * 100);
     document.getElementById('quiz').innerHTML = `
       <h2>結果</h2>
-      <p>正解数: ${score} / ${questions.length}</p>
+      <p>正解数: ${score} / ${total}（正答率 ${rate}%）</p>
       <button onclick="location.reload()">もう一度</button>
     `;
   }
 
-  loadCSV();
+  // ボタンの有効/無効
+  function toggleStartButtons(enabled) {
+    document.querySelectorAll('#start button').forEach(b => b.disabled = !enabled);
+  }
+
+  // Fisher-Yates シャッフル
+  function shuffle(array) {
+    const a = array.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  // クォートとカンマに強い簡易CSVパーサ
+  function parseCSV(lines) {
+    const rows = [];
+    for (const line of lines) {
+      const row = [];
+      let cur = '';
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const c = line[i];
+        if (inQuotes) {
+          if (c === '"') {
+            if (i + 1 < line.length && line[i + 1] === '"') {
+              cur += '"'; i++; // エスケープされたダブルクォート
+            } else {
+              inQuotes = false;
+            }
+          } else {
+            cur += c;
+          }
+        } else {
+          if (c === '"') {
+            inQuotes = true;
+          } else if (c === ',') {
+            row.push(cur);
+            cur = '';
+          } else {
+            cur += c;
+          }
+        }
+      }
+      row.push(cur);
+      rows.push(row);
+    }
+    return rows;
+  }
   </script>
 </body>
 </html>
