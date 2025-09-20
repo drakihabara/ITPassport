@@ -17,10 +17,7 @@
       font-size: 1.4rem;
       margin-bottom: 1rem;
     }
-    #controls, #quiz, #result {
-      margin-top: 1rem;
-    }
-    /* 分野ボタンを横スクロール可能に */
+    #controls, #quiz, #result { margin-top: 1rem; }
     #tag-buttons {
       display: flex;
       overflow-x: auto;
@@ -40,9 +37,7 @@
       color: #fff;
       border-color: #4CAF50;
     }
-    label, select {
-      font-size: 0.9rem;
-    }
+    label, select { font-size: 0.9rem; }
     select {
       padding: 0.4rem;
       border-radius: 6px;
@@ -69,14 +64,8 @@
       margin: 1rem 0;
       line-height: 1.4;
     }
-    #options {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-    #options li {
-      margin-bottom: 0.6rem;
-    }
+    #options { list-style: none; padding: 0; margin: 0; }
+    #options li { margin-bottom: 0.6rem; }
     #options button {
       width: 100%;
       padding: 0.8rem;
@@ -86,9 +75,7 @@
       background: #fff;
       text-align: left;
     }
-    #options button:disabled {
-      opacity: 0.8;
-    }
+    #options button:disabled { opacity: 0.8; }
     #result h2 {
       text-align: center;
       font-size: 1.2rem;
@@ -100,7 +87,6 @@
   <h1>ITパスポート ドリル</h1>
 
   <div id="controls">
-    <!-- 分野ボタン群 -->
     <div id="tag-buttons">
       <button class="tag-btn active" data-tag="all">全分野</button>
       <button class="tag-btn" data-tag="ストラテジ">ストラテジ</button>
@@ -108,7 +94,6 @@
       <button class="tag-btn" data-tag="テクノロジ">テクノロジ</button>
     </div>
 
-    <!-- 難易度セレクト -->
     <label>
       難易度:
       <select id="difficulty">
@@ -131,11 +116,10 @@
   <div id="result" style="display:none;"></div>
 
   <script>
-    const NUM_QUESTIONS = 30;
+    const NUM_QUESTIONS = 20;
     let questions = [], current = 0, score = 0;
     let selectedTag = 'all';
 
-    // 分野ボタンのクリックでactive切替
     document.querySelectorAll('.tag-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelector('.tag-btn.active').classList.remove('active');
@@ -242,4 +226,14 @@
         btn.textContent = opt;
         btn.addEventListener('click', () => selectAnswer(i));
         li.appendChild(btn);
-        ul
+        ul.appendChild(li);
+      });
+    }
+
+    function selectAnswer(idx) {
+      const q = questions[current];
+      const ul = document.getElementById('options');
+      [...ul.children].forEach((li, i) => {
+        const btn = li.firstChild;
+        btn.disabled = true;
+        if
