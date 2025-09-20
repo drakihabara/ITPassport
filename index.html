@@ -30,11 +30,11 @@
     }
     .tag-btn {
       flex: 1;
-      padding: 0.6rem;
+      padding: 0.8rem;
       border: 1px solid #ccc;
       border-radius: 6px;
       background: #fff;
-      font-size: 0.9rem;
+      font-size: 1rem;
     }
     .tag-btn.active {
       background-color: #4CAF50;
@@ -223,6 +223,4 @@
     function selectAnswer(idx) {
       const q = questions[current];
       const ul = document.getElementById('options');
-      [...ul.children].forEach((li, i) => {
-        const btn = li.firstChild;
-        btn.disabled = true;
+      [...ul.children].forEach((li, i) =>
