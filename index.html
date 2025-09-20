@@ -16,7 +16,15 @@
   </style>
 </head>
 <body>
-  <div id="quiz">
+  <div id="start">
+    <h2>分野を選んでください</h2>
+    <button onclick="startQuiz('ストラテジ')">ストラテジ</button>
+    <button onclick="startQuiz('マネジメント')">マネジメント</button>
+    <button onclick="startQuiz('テクノロジ')">テクノロジ</button>
+    <button onclick="startQuiz('all')">全分野</button>
+  </div>
+
+  <div id="quiz" style="display:none;">
     <div id="qText" class="question"></div>
     <div id="options"></div>
     <div id="feedback"></div>
@@ -24,23 +32,48 @@
   </div>
 
   <script>
+  let allQuestions = [];
   let questions = [];
   let idx = 0;
+  let score = 0;
 
   async function loadCSV() {
     const res = await fetch('questions.csv');
     const text = await res.text();
-    const lines = text.trim().split('\n').slice(1); // ヘッダ除去
-    questions = lines.map(line => {
+    const lines = text.trim().split('\n').slice(1);
+    allQuestions = lines.map(line => {
       const cols = line.split(',');
       return {
         q: cols[1],
         options: [cols[2], cols[3], cols[4], cols[5]],
         answer: parseInt(cols[6], 10) - 1,
-        explanation: cols[7]
+        explanation: cols[7],
+        tag: cols[8]
       };
     });
+  }
+
+  function startQuiz(tag) {
+    document.getElementById('start').style.display = 'none';
+    document.getElementById('quiz').style.display = 'block';
+
+    let pool = (tag === 'all') ? allQuestions : allQuestions.filter(q => q.tag === tag);
+
+    // シャッフルして20問抽出
+    pool = shuffle(pool);
+    questions = pool.slice(0, 20);
+
+    idx = 0;
+    score = 0;
     showQuestion();
+  }
+
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
   }
 
   function showQuestion() {
@@ -68,18 +101,30 @@
       b.disabled = true;
     });
 
-    document.getElementById('feedback').textContent =
-      i === q.answer ? '✅ 正解！' : '❌ 不正解…';
+    if (i === q.answer) {
+      document.getElementById('feedback').textContent = '✅ 正解！';
+      score++;
+    } else {
+      document.getElementById('feedback').textContent = '❌ 不正解…';
+    }
     document.getElementById('explanation').textContent = `解説: ${q.explanation}`;
 
     setTimeout(() => {
-      if (idx < questions.length - 1) {
-        idx++;
+      idx++;
+      if (idx < questions.length) {
         showQuestion();
       } else {
-        document.getElementById('quiz').innerHTML = '<h2>終了！お疲れさまでした。</h2>';
+        showResult();
       }
     }, 2000);
+  }
+
+  function showResult() {
+    document.getElementById('quiz').innerHTML = `
+      <h2>結果</h2>
+      <p>正解数: ${score} / ${questions.length}</p>
+      <button onclick="location.reload()">もう一度</button>
+    `;
   }
 
   loadCSV();
