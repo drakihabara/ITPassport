@@ -1,110 +1,27 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <title>ITパスポート用語クイズ</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ITパスポート クイズ</title>
   <style>
-    :root {
-      --bg: #0f172a;
-      --panel: #111827;
-      --text: #e5e7eb;
-      --muted: #9ca3af;
-      --accent: #22c55e;
-      --wrong: #ef4444;
-      --btn: #1f2937;
-      --btn-hover: #374151;
-      --chip: #0ea5e9;
-    }
-    body {
-      margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto;
-      background: linear-gradient(120deg, #0b1022, #0b1a2a 40%, #0b1022 100%);
-      color: var(--text);
-      min-height: 100vh; display: grid; place-items: center; padding: 20px;
-    }
-    .card {
-      width: min(840px, 94vw);
-      background: linear-gradient(180deg, #0f172a 0%, #0b1222 100%);
-      border: 1px solid #1f2937; border-radius: 16px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.45);
-      overflow: hidden;
-    }
-    header, footer { padding: 16px 20px; display: flex; gap: 12px; align-items: center; justify-content: space-between; }
-    header .title { font-weight: 700; letter-spacing: .02em; }
-    header .meta { font-size: 12px; color: var(--muted); }
-    .progress {
-      height: 8px; background: #0b1020;
-      border-top: 1px solid #1f2937; border-bottom: 1px solid #1f2937;
-      position: relative;
-    }
-    .bar { height: 100%; width: 0%; background: linear-gradient(90deg, #22c55e, #0ea5e9); transition: width .35s ease; }
-    main { padding: 24px 20px 12px; display: grid; gap: 16px; }
-    .chip {
-      display: inline-flex; align-items: center; gap: 8px;
-      font-size: 12px; color: #cdeafe; background: rgba(14,165,233,.12);
-      border: 1px solid rgba(14,165,233,.25); padding: 6px 10px; border-radius: 999px;
-    }
-    .prompt { font-size: clamp(18px, 2.2vw, 22px); line-height: 1.6; }
-    .options { display: grid; gap: 10px; }
-    .btn {
-      text-align: left; border: 1px solid #263244; background: linear-gradient(180deg, #121a2b, #0e1726);
-      color: var(--text); border-radius: 12px; padding: 14px 14px; cursor: pointer;
-      transition: transform .05s ease, border-color .2s ease, background .2s ease;
-    }
-    .btn:hover { background: linear-gradient(180deg, #172034, #0f1930); border-color: #34507a; }
-    .btn.correct { border-color: #1db24a; box-shadow: inset 0 0 0 1px rgba(34,197,94,.25); }
-    .btn.wrong { border-color: #b01d2a; box-shadow: inset 0 0 0 1px rgba(239,68,68,.25); }
-    .row { display: flex; gap: 10px; justify-content: space-between; align-items: center; }
-    .muted { color: var(--muted); font-size: 12px; }
-    .score { font-weight: 700; }
-    .controls { display: flex; gap: 8px; }
-    .ghost, .solid {
-      border-radius: 10px; padding: 10px 14px; font-weight: 600; cursor: pointer; border: 1px solid #30415a;
-      background: #0e1726; color: #cbd5e1;
-    }
-    .solid { background: linear-gradient(180deg, #1f2937, #111827); }
-    .ghost:hover, .solid:hover { filter: brightness(1.07); }
-    .hidden { display: none !important; }
-    footer .hint { font-size: 12px; color: var(--muted); }
-    .answer-expo { font-size: 14px; color: #cbd5e1; padding: 4px 2px 0; }
+    body { font-family: sans-serif; margin: 20px; background: #fff; color: #000; }
+    .question { font-size: 18px; margin-bottom: 16px; }
+    .option { display: block; width: 100%; margin: 8px 0; padding: 12px; font-size: 16px;
+              border: 1px solid #ccc; border-radius: 6px; background: #f9f9f9; text-align: left; }
+    .option.correct { background: #d1fae5; border-color: #10b981; }
+    .option.wrong { background: #fee2e2; border-color: #ef4444; }
+    #feedback { margin-top: 12px; font-weight: bold; }
+    #explanation { margin-top: 8px; font-size: 14px; color: #333; }
   </style>
 </head>
 <body>
-  <div class="card">
-    <header>
-      <div>
-        <div class="title">ITパスポート用語クイズ</div>
-        <div class="meta">ボタン選択式・全問ランダム・4択</div>
-      </div>
-      <div class="row">
-        <div class="score" id="score">0/0</div>
-        <div class="muted" id="progressText">0%</div>
-      </div>
-    </header>
-
-    <div class="progress"><div class="bar" id="bar"></div></div>
-
-    <main>
-      <div class="chip">出題カテゴリ <span id="cat">すべて</span></div>
-      <div class="prompt" id="prompt">読み込み中...</div>
-      <div class="options" id="options"></div>
-      <div class="answer-expo hidden" id="expo"></div>
-
-      <div class="row">
-        <div class="muted">問題は重複なしで出題</div>
-        <div class="controls">
-          <button class="ghost" id="skipBtn">スキップ</button>
-          <button class="solid" id="nextBtn">次へ</button>
-        </div>
-      </div>
-    </main>
-
-    <footer>
-      <div class="hint" id="hint">CSVから問題を読み込んでいます…</div>
-      <div class="hint">v1.0</div>
-    </footer>
+  <div id="quiz">
+    <div id="qText" class="question"></div>
+    <div id="options"></div>
+    <div id="feedback"></div>
+    <div id="explanation"></div>
   </div>
-
-  <script src="script.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
