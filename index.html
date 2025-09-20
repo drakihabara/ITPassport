@@ -17,6 +17,7 @@
     #explanation { margin-top: 8px; font-size: 14px; color: #333; }
     #start button { margin-right: 8px; margin-bottom: 8px; padding: 10px 14px; border-radius: 8px; border: 1px solid #ccc; background: #f9f9f9; cursor: pointer; }
     #start button:disabled { opacity: 0.6; cursor: not-allowed; }
+    #note { color:#555; font-size: 13px; margin-top:6px; }
   </style>
 </head>
 <body>
@@ -27,6 +28,7 @@
     <button onclick="startQuiz('マネジメント')" disabled>マネジメント</button>
     <button onclick="startQuiz('テクノロジ')" disabled>テクノロジ</button>
     <button onclick="startQuiz('all')" disabled>全分野</button>
+    <div id="note">CSVはUTF-8、末尾の空行なし、tagsは「ストラテジ／マネジメント／テクノロジ」で統一してください。</div>
   </div>
 
   <div id="quiz" style="display:none;">
@@ -54,32 +56,47 @@
     toggleStartButtons(false);
     const loadingP = document.getElementById('loading');
     try {
-      const res = await fetch('questions.csv', { cache: 'no-store' });
+      // キャッシュ無効化＋BOM対応
+      const res = await fetch('questions.csv?v=' + Date.now(), { cache: 'no-store' });
       if (!res.ok) throw new Error('questions.csv を取得できませんでした');
-      // BOM除去
       const raw = (await res.text()).replace(/^\uFEFF/, '');
-      // 行へ分割（CRLF/LF両対応）、末尾空行除外
-      const lines = raw.split(/\r?\n/).filter(line => line.trim() !== '');
-      // 簡易CSVパース（クォート・カンマ対応）
-      const rows = parseCSV(lines);
-      if (rows.length < 2) throw new Error('CSVにデータ行がありません');
 
-      // ヘッダ確認（任意：最低9列）
+      // 行へ分割（CRLF/LF対応）、空行除外
+      const lines = raw.split(/\r?\n/).filter(line => line.trim() !== '');
+      const rows = parseCSV(lines);
+      if (!rows || rows.length < 2) throw new Error('CSVにデータ行がありません');
+
       const header = rows[0];
       const body = rows.slice(1);
 
-      // 列不足行を除外してマッピング
+      // 列不足行を除外してマッピング（全項目trim）
       allQuestions = body
-        .filter(cols => cols.length >= 9)
-        .map(cols => ({
-          q: cols[1],
-          options: [cols[2], cols[3], cols[4], cols[5]],
-          answer: parseInt(cols[6], 10) - 1,
-          explanation: cols[7],
-          tag: cols[8]
-        }));
+        .filter(cols => cols && cols.length >= 9)
+        .map(cols => {
+          const q = (cols[1] || '').trim();
+          const o1 = (cols[2] || '').trim();
+          const o2 = (cols[3] || '').trim();
+          const o3 = (cols[4] || '').trim();
+          const o4 = (cols[5] || '').trim();
+          const ans = parseInt((cols[6] || '').trim(), 10) - 1;
+          const exp = (cols[7] || '').trim();
+          const tag = (cols[8] || '').trim();
+          return {
+            q,
+            options: [o1, o2, o3, o4],
+            answer: isFinite(ans) ? ans : -1,
+            explanation: exp,
+            tag
+          };
+        })
+        .filter(x =>
+          x.q &&
+          Array.isArray(x.options) && x.options.length === 4 && x.options.every(v => typeof v === 'string') &&
+          Number.isInteger(x.answer) && x.answer >= 0 && x.answer < 4 &&
+          x.tag
+        );
 
-      // ログ（必要に応じて確認用）
+      // ログ（確認用）
       console.log('総数:', allQuestions.length);
       console.log('ストラテジ:', allQuestions.filter(q => q.tag === 'ストラテジ').length);
       console.log('マネジメント:', allQuestions.filter(q => q.tag === 'マネジメント').length);
@@ -96,10 +113,11 @@
 
   // 分野開始
   function startQuiz(tag) {
-    document.getElementById('start').style.display = 'none';
-    document.getElementById('quiz').style.display = 'block';
+    // フィルタ前に見える化
+    console.log('[startQuiz] tag=', tag);
 
     let pool = (tag === 'all') ? allQuestions : allQuestions.filter(q => q.tag === tag);
+    console.log('[startQuiz] pool length =', pool.length);
 
     // シャッフル
     pool = shuffle(pool);
@@ -117,17 +135,29 @@
 
     idx = 0;
     score = 0;
+
+    // UI切り替えは最後に
+    document.getElementById('start').style.display = 'none';
+    document.getElementById('quiz').style.display = 'block';
+
     showQuestion();
   }
 
-  // 問題表示（境界ガード付き）
+  // 問題表示（境界＆構造ガード付き）
   function showQuestion() {
     if (idx < 0 || idx >= questions.length) {
+      console.warn('[showQuestion] idx out of range:', idx, 'len=', questions.length);
       showResult();
       return;
     }
     const q = questions[idx];
-    if (!q) { showResult(); return; }
+
+    // 構造チェック
+    if (!q || typeof q.q !== 'string' || !Array.isArray(q.options) || q.options.length !== 4) {
+      console.error('[showQuestion] invalid question at idx', idx, q);
+      showResult();
+      return;
+    }
 
     document.getElementById('qText').textContent = `Q${idx + 1}. ${q.q}`;
     const optDiv = document.getElementById('options');
@@ -174,7 +204,7 @@
   // 結果表示
   function showResult() {
     const total = questions.length;
-    const rate = Math.round((score / total) * 100);
+    const rate = total ? Math.round((score / total) * 100) : 0;
     document.getElementById('quiz').innerHTML = `
       <h2>結果</h2>
       <p>正解数: ${score} / ${total}（正答率 ${rate}%）</p>
@@ -197,7 +227,7 @@
     return a;
   }
 
-  // クォートとカンマに強い簡易CSVパーサ
+  // クォートとカンマに強い簡易CSVパーサ（1行=1レコード前提）
   function parseCSV(lines) {
     const rows = [];
     for (const line of lines) {
@@ -209,7 +239,7 @@
         if (inQuotes) {
           if (c === '"') {
             if (i + 1 < line.length && line[i + 1] === '"') {
-              cur += '"'; i++; // エスケープされたダブルクォート
+              cur += '"'; i++; // 連続2つはエスケープされたダブルクォート
             } else {
               inQuotes = false;
             }
