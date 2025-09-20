@@ -18,15 +18,19 @@
       margin-bottom: 1rem;
     }
     #controls, #quiz, #result { margin-top: 1rem; }
-    #tag-buttons {
+
+    .tag-group { margin-bottom: 1rem; }
+    .tag-label {
+      font-weight: bold;
+      margin-bottom: 0.3rem;
+    }
+    .level-buttons {
       display: flex;
-      overflow-x: auto;
       gap: 0.5rem;
-      margin-bottom: 1rem;
     }
     .tag-btn {
-      flex: 0 0 auto;
-      padding: 0.6rem 1rem;
+      flex: 1;
+      padding: 0.6rem;
       border: 1px solid #ccc;
       border-radius: 6px;
       background: #fff;
@@ -37,12 +41,7 @@
       color: #fff;
       border-color: #4CAF50;
     }
-    label, select { font-size: 0.9rem; }
-    select {
-      padding: 0.4rem;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
+
     #start {
       display: block;
       width: 100%;
@@ -54,6 +53,7 @@
       background: #2196F3;
       color: #fff;
     }
+
     #progress {
       font-size: 0.9rem;
       margin-bottom: 0.5rem;
@@ -88,21 +88,31 @@
 
   <div id="controls">
     <div id="tag-buttons">
-      <button class="tag-btn active" data-tag="all">全分野</button>
-      <button class="tag-btn" data-tag="ストラテジ">ストラテジ</button>
-      <button class="tag-btn" data-tag="マネジメント">マネジメント</button>
-      <button class="tag-btn" data-tag="テクノロジ">テクノロジ</button>
+      <div class="tag-group">
+        <div class="tag-label">ストラテジ</div>
+        <div class="level-buttons">
+          <button class="tag-btn" data-tag="ストラテジ" data-diff="初級">初級</button>
+          <button class="tag-btn" data-tag="ストラテジ" data-diff="標準">標準</button>
+          <button class="tag-btn" data-tag="ストラテジ" data-diff="応用">応用</button>
+        </div>
+      </div>
+      <div class="tag-group">
+        <div class="tag-label">マネジメント</div>
+        <div class="level-buttons">
+          <button class="tag-btn" data-tag="マネジメント" data-diff="初級">初級</button>
+          <button class="tag-btn" data-tag="マネジメント" data-diff="標準">標準</button>
+          <button class="tag-btn" data-tag="マネジメント" data-diff="応用">応用</button>
+        </div>
+      </div>
+      <div class="tag-group">
+        <div class="tag-label">テクノロジ</div>
+        <div class="level-buttons">
+          <button class="tag-btn" data-tag="テクノロジ" data-diff="初級">初級</button>
+          <button class="tag-btn" data-tag="テクノロジ" data-diff="標準">標準</button>
+          <button class="tag-btn" data-tag="テクノロジ" data-diff="応用">応用</button>
+        </div>
+      </div>
     </div>
-
-    <label>
-      難易度:
-      <select id="difficulty">
-        <option value="any">指定なし（ミックス）</option>
-        <option value="初級">初級</option>
-        <option value="標準">標準</option>
-        <option value="応用">応用</option>
-      </select>
-    </label>
 
     <button id="start">開始</button>
   </div>
@@ -118,19 +128,24 @@
   <script>
     const NUM_QUESTIONS = 20;
     let questions = [], current = 0, score = 0;
-    let selectedTag = 'all';
+    let selectedTag = null, selectedDiff = null;
 
+    // 分野＋難易度ボタン選択
     document.querySelectorAll('.tag-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        document.querySelector('.tag-btn.active').classList.remove('active');
+        document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         selectedTag = btn.dataset.tag;
+        selectedDiff = btn.dataset.diff;
       });
     });
 
     document.getElementById('start').addEventListener('click', () => {
-      const diff = document.getElementById('difficulty').value;
-      startQuiz(selectedTag, diff);
+      if (!selectedTag || !selectedDiff) {
+        alert("分野と難易度を選んでください");
+        return;
+      }
+      startQuiz(selectedTag, selectedDiff);
     });
 
     async function loadCSV(file) {
@@ -165,33 +180,8 @@
 
     async function startQuiz(tag, diff) {
       document.getElementById('controls').style.display = 'none';
-      let pool = [];
-      const tags = ['ストラテジ','マネジメント','テクノロジ'];
-
-      if (tag === 'all') {
-        const lists = await Promise.all(tags.map(t => loadCSV(csvFileName(t))));
-        pool = lists.flat();
-      } else {
-        pool = await loadCSV(csvFileName(tag));
-      }
-
-      if (diff === 'any') {
-        const easy = shuffle(pool.filter(q=>q.difficulty==='初級'));
-        const mid  = shuffle(pool.filter(q=>q.difficulty==='標準'));
-        const adv  = shuffle(pool.filter(q=>q.difficulty==='応用'));
-        const ne = Math.min(Math.ceil(NUM_QUESTIONS*0.4), easy.length);
-        const nm = Math.min(Math.ceil(NUM_QUESTIONS*0.4), mid.length);
-        const na = Math.min(NUM_QUESTIONS - ne - nm, adv.length);
-        let sel = [...easy.slice(0,ne), ...mid.slice(0,nm), ...adv.slice(0,na)];
-        if (sel.length < NUM_QUESTIONS) {
-          const rest = shuffle(pool.filter(x=>!sel.includes(x)));
-          sel = [...sel, ...rest.slice(0, NUM_QUESTIONS - sel.length)];
-        }
-        questions = shuffle(sel);
-      } else {
-        questions = shuffle(pool.filter(q=>q.difficulty===diff));
-      }
-
+      let pool = await loadCSV(csvFileName(tag));
+      questions = shuffle(pool.filter(q=>q.difficulty===diff));
       questions = questions.slice(0, Math.min(NUM_QUESTIONS, questions.length));
       current = 0; score = 0;
       document.getElementById('result').style.display = 'none';
@@ -236,4 +226,3 @@
       [...ul.children].forEach((li, i) => {
         const btn = li.firstChild;
         btn.disabled = true;
-        if
