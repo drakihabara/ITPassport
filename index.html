@@ -20,17 +20,11 @@
     #controls, #quiz, #result { margin-top: 1rem; }
 
     .tag-group { margin-bottom: 1rem; }
-    .tag-label {
-      font-weight: bold;
-      margin-bottom: 0.3rem;
-    }
-    .level-buttons {
-      display: flex;
-      gap: 0.5rem;
-    }
     .tag-btn {
-      flex: 1;
+      display: block;
+      width: 100%;
       padding: 0.8rem;
+      margin-bottom: 0.5rem;
       border: 1px solid #ccc;
       border-radius: 6px;
       background: #fff;
@@ -40,18 +34,6 @@
       background-color: #4CAF50;
       color: #fff;
       border-color: #4CAF50;
-    }
-
-    #start {
-      display: block;
-      width: 100%;
-      margin-top: 1rem;
-      padding: 0.8rem;
-      font-size: 1rem;
-      border: none;
-      border-radius: 6px;
-      background: #2196F3;
-      color: #fff;
     }
 
     #progress {
@@ -87,34 +69,11 @@
   <h1>ITパスポート ドリル</h1>
 
   <div id="controls">
-    <div id="tag-buttons">
-      <div class="tag-group">
-        <div class="tag-label">ストラテジ</div>
-        <div class="level-buttons">
-          <button class="tag-btn" data-tag="ストラテジ" data-diff="初級">初級</button>
-          <button class="tag-btn" data-tag="ストラテジ" data-diff="標準">標準</button>
-          <button class="tag-btn" data-tag="ストラテジ" data-diff="応用">応用</button>
-        </div>
-      </div>
-      <div class="tag-group">
-        <div class="tag-label">マネジメント</div>
-        <div class="level-buttons">
-          <button class="tag-btn" data-tag="マネジメント" data-diff="初級">初級</button>
-          <button class="tag-btn" data-tag="マネジメント" data-diff="標準">標準</button>
-          <button class="tag-btn" data-tag="マネジメント" data-diff="応用">応用</button>
-        </div>
-      </div>
-      <div class="tag-group">
-        <div class="tag-label">テクノロジ</div>
-        <div class="level-buttons">
-          <button class="tag-btn" data-tag="テクノロジ" data-diff="初級">初級</button>
-          <button class="tag-btn" data-tag="テクノロジ" data-diff="標準">標準</button>
-          <button class="tag-btn" data-tag="テクノロジ" data-diff="応用">応用</button>
-        </div>
-      </div>
+    <div class="tag-group">
+      <button class="tag-btn" data-tag="ストラテジ">ストラテジ</button>
+      <button class="tag-btn" data-tag="マネジメント">マネジメント</button>
+      <button class="tag-btn" data-tag="テクノロジ">テクノロジ</button>
     </div>
-
-    <button id="start">開始</button>
   </div>
 
   <div id="quiz" style="display:none;">
@@ -126,26 +85,14 @@
   <div id="result" style="display:none;"></div>
 
   <script>
-    const NUM_QUESTIONS = 20;
+    const NUM_EASY = 5, NUM_MID = 10, NUM_ADV = 5;
     let questions = [], current = 0, score = 0;
-    let selectedTag = null, selectedDiff = null;
 
-    // 分野＋難易度ボタン選択
+    // 分野ボタン選択
     document.querySelectorAll('.tag-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        selectedTag = btn.dataset.tag;
-        selectedDiff = btn.dataset.diff;
+        startQuiz(btn.dataset.tag);
       });
-    });
-
-    document.getElementById('start').addEventListener('click', () => {
-      if (!selectedTag || !selectedDiff) {
-        alert("分野と難易度を選んでください");
-        return;
-      }
-      startQuiz(selectedTag, selectedDiff);
     });
 
     async function loadCSV(file) {
@@ -178,12 +125,23 @@
       return result;
     }
 
-    async function startQuiz(tag, diff) {
+    async function startQuiz(tag) {
       document.getElementById('controls').style.display = 'none';
       let pool = await loadCSV(csvFileName(tag));
-      questions = shuffle(pool.filter(q=>q.difficulty===diff));
-      questions = questions.slice(0, Math.min(NUM_QUESTIONS, questions.length));
+
+      const easy = shuffle(pool.filter(q=>q.difficulty==='初級'));
+      const mid  = shuffle(pool.filter(q=>q.difficulty==='標準'));
+      const adv  = shuffle(pool.filter(q=>q.difficulty==='応用'));
+
+      let sel = [
+        ...easy.slice(0, NUM_EASY),
+        ...mid.slice(0, NUM_MID),
+        ...adv.slice(0, NUM_ADV)
+      ];
+
+      questions = shuffle(sel);
       current = 0; score = 0;
+
       document.getElementById('result').style.display = 'none';
       document.getElementById('quiz').style.display = '';
       showQuestion();
@@ -223,4 +181,35 @@
     function selectAnswer(idx) {
       const q = questions[current];
       const ul = document.getElementById('options');
-      [...ul.children].forEach((li, i) =>
+      [...ul.children].forEach((li, i) => {
+        const btn = li.firstChild;
+        btn.disabled = true;
+        if (i === q.answer) btn.style.backgroundColor = 'lightgreen';
+        else if (i === idx) btn.style.backgroundColor = 'salmon';
+      });
+      if (idx === q.answer) score++;
+
+      const p = document.createElement('p');
+      p.textContent = q.explanation;
+      document.getElementById('quiz').appendChild(p);
+
+      setTimeout(() => {
+        if (p) p.remove();
+        if (++current < questions.length) {
+          showQuestion();
+        } else {
+          showResults();
+        }
+      }, 1500);
+    }
+
+    function showResults() {
+      document.getElementById('quiz').style.display = 'none';
+      const r = document.getElementById('result');
+      r.innerHTML = `<h2>結果: ${score} / ${questions.length}</h2>`;
+      r.style.display = '';
+      document.getElementById('controls').style.display = '';
+    }
+  </script>
+</body>
+</html>
