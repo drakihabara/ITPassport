@@ -28,6 +28,8 @@
       background: #fff;
       font-size: 1rem;
       text-align: center;
+      white-space: normal; /* ← スマホで自然に折り返し可能 */
+      line-height: 1.4;
     }
     #progress {
       font-size: 0.9rem;
@@ -65,7 +67,9 @@
     <button class="tag-btn" data-tag="ストラテジ">ストラテジ</button>
     <button class="tag-btn" data-tag="マネジメント">マネジメント</button>
     <button class="tag-btn" data-tag="テクノロジ">テクノロジ</button>
-    <button class="tag-btn" data-tag="syllabus63plus">シラバス6.3以降（教科書に無い新規追加問題）</button>
+    <button class="tag-btn" data-tag="syllabus63plus">
+      シラバス6.3以降<br>（教科書に無い新規追加問題）
+    </button>
   </div>
 
   <div id="quiz" style="display:none;">
