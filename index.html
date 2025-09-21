@@ -28,6 +28,7 @@
       border-radius: 6px;
       background: #fff;
       font-size: 1rem;
+      text-align: center;
     }
 
     #progress {
@@ -66,7 +67,7 @@
     <button class="tag-btn" data-tag="ストラテジ">ストラテジ</button>
     <button class="tag-btn" data-tag="マネジメント">マネジメント</button>
     <button class="tag-btn" data-tag="テクノロジ">テクノロジ</button>
-    <button class="tag-btn" data-tag="syllabus63">シラバス6.3専用</button>
+    <button class="tag-btn" data-tag="syllabus63plus">6.3以降プラス</button>
   </div>
 
   <div id="quiz" style="display:none;">
@@ -82,9 +83,7 @@
     let questions = [], current = 0, score = 0;
 
     document.querySelectorAll('.tag-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        startQuiz(btn.dataset.tag);
-      });
+      btn.addEventListener('click', () => startQuiz(btn.dataset.tag));
     });
 
     async function loadCSV(file) {
@@ -119,17 +118,16 @@
 
     async function startQuiz(tag) {
       document.getElementById('controls').style.display = 'none';
-      let pool = await loadCSV(csvFileName(tag));
-
+      const pool = await loadCSV(csvFileName(tag));
       let sel;
-      if (tag === 'syllabus63') {
-        // 6.3専用は全問題からランダムに20問
+
+      if (tag === 'syllabus63plus') {
+        // 6.3以降プラスは全問題からランダムに20問
         sel = shuffle(pool).slice(0, 20);
       } else {
-        const easy = shuffle(pool.filter(q=>q.difficulty==='初級'));
-        const mid  = shuffle(pool.filter(q=>q.difficulty==='標準'));
-        const adv  = shuffle(pool.filter(q=>q.difficulty==='応用'));
-
+        const easy = shuffle(pool.filter(q => q.difficulty === '初級'));
+        const mid  = shuffle(pool.filter(q => q.difficulty === '標準'));
+        const adv  = shuffle(pool.filter(q => q.difficulty === '応用'));
         sel = [
           ...easy.slice(0, NUM_EASY),
           ...mid.slice(0, NUM_MID),
@@ -138,7 +136,8 @@
       }
 
       questions = shuffle(sel);
-      current = 0; score = 0;
+      current = 0;
+      score = 0;
 
       document.getElementById('result').style.display = 'none';
       document.getElementById('quiz').style.display = '';
@@ -146,10 +145,10 @@
     }
 
     function csvFileName(tag) {
-      if (tag==='ストラテジ') return 'strategy.csv';
-      if (tag==='マネジメント') return 'management.csv';
-      if (tag==='テクノロジ') return 'technology.csv';
-      if (tag==='syllabus63') return 'syllabus63.csv'; // 新規追加
+      if (tag === 'ストラテジ') return 'strategy.csv';
+      if (tag === 'マネジメント') return 'management.csv';
+      if (tag === 'テクノロジ') return 'technology.csv';
+      if (tag === 'syllabus63plus') return 'syllabus63plus.csv';
       return '';
     }
 
@@ -163,7 +162,7 @@
 
     function showQuestion() {
       const q = questions[current];
-      document.getElementById('progress').textContent = `問題 ${current+1} / ${questions.length}`;
+      document.getElementById('progress').textContent = `問題 ${current + 1} / ${questions.length}`;
       document.getElementById('question').textContent = q.q;
       const ul = document.getElementById('options');
       ul.innerHTML = '';
@@ -189,7 +188,6 @@
 
       const resultMsg = document.createElement('p');
       resultMsg.style.fontWeight = 'bold';
-
       if (idx === q.answer) {
         score++;
         resultMsg.innerHTML = '<span style="color:green;font-weight:bold;">🟢 正解です！</span>';
@@ -201,17 +199,15 @@
       const explanation = document.createElement('p');
       explanation.textContent = "解説: " + q.explanation;
 
-      document.getElementById('quiz').appendChild(resultMsg);
-      document.getElementById('quiz').appendChild(explanation);
+      const quizEl = document.getElementById('quiz');
+      quizEl.appendChild(resultMsg);
+      quizEl.appendChild(explanation);
 
       setTimeout(() => {
         resultMsg.remove();
         explanation.remove();
-        if (++current < questions.length) {
-          showQuestion();
-        } else {
-          showResults();
-        }
+        if (++current < questions.length) showQuestion();
+        else showResults();
       }, 2000);
     }
 
@@ -225,3 +221,4 @@
   </script>
 </body>
 </html>
+```
