@@ -18,7 +18,6 @@
       margin-bottom: 1rem;
     }
     #controls, #quiz, #result { margin-top: 1rem; }
-
     .tag-btn {
       display: block;
       width: 100%;
@@ -30,7 +29,6 @@
       font-size: 1rem;
       text-align: center;
     }
-
     #progress {
       font-size: 0.9rem;
       margin-bottom: 0.5rem;
@@ -120,9 +118,7 @@
       document.getElementById('controls').style.display = 'none';
       const pool = await loadCSV(csvFileName(tag));
       let sel;
-
       if (tag === 'syllabus63plus') {
-        // 6.3以降プラスは全問題からランダムに20問
         sel = shuffle(pool).slice(0, 20);
       } else {
         const easy = shuffle(pool.filter(q => q.difficulty === '初級'));
@@ -134,11 +130,9 @@
           ...adv.slice(0, NUM_ADV)
         ];
       }
-
       questions = shuffle(sel);
       current = 0;
       score = 0;
-
       document.getElementById('result').style.display = 'none';
       document.getElementById('quiz').style.display = '';
       showQuestion();
@@ -185,7 +179,6 @@
         if (i === q.answer) btn.style.backgroundColor = 'lightgreen';
         else if (i === idx) btn.style.backgroundColor = 'salmon';
       });
-
       const resultMsg = document.createElement('p');
       resultMsg.style.fontWeight = 'bold';
       if (idx === q.answer) {
@@ -195,14 +188,11 @@
         resultMsg.innerHTML = `<span style="color:red;font-weight:bold;">❌ 不正解です</span><br>
           <span style="color:#555;">正しい答えは「${q.options[q.answer]}」です</span>`;
       }
-
       const explanation = document.createElement('p');
       explanation.textContent = "解説: " + q.explanation;
-
       const quizEl = document.getElementById('quiz');
       quizEl.appendChild(resultMsg);
       quizEl.appendChild(explanation);
-
       setTimeout(() => {
         resultMsg.remove();
         explanation.remove();
@@ -221,4 +211,3 @@
   </script>
 </body>
 </html>
-```
