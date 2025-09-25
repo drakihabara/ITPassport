@@ -1,217 +1,116 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ITパスポート</title>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      margin: 0;
-      padding: 1rem;
-      background: #f9f9f9;
-      color: #333;
-    }
-    h1 {
-      text-align: center;
-      font-size: 1.4rem;
-      margin-bottom: 1rem;
-    }
-    #controls, #quiz, #result { margin-top: 1rem; }
-    .tag-btn {
-      display: block;
-      width: 100%;
-      padding: 0.8rem;
-      margin-bottom: 0.5rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      background: #fff;
-      font-size: 1rem;
-      text-align: center;
-      white-space: normal; /* ← スマホで自然に折り返し可能 */
-      line-height: 1.4;
-    }
-    #progress {
-      font-size: 0.9rem;
-      margin-bottom: 0.5rem;
-      text-align: right;
-    }
-    #question {
-      font-size: 1rem;
-      margin: 1rem 0;
-      line-height: 1.4;
-    }
-    #options { list-style: none; padding: 0; margin: 0; }
-    #options li { margin-bottom: 0.6rem; }
-    #options button {
-      width: 100%;
-      padding: 0.8rem;
-      font-size: 0.95rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      background: #fff;
-      text-align: left;
-    }
-    #options button:disabled { opacity: 0.8; }
-    #result h2 {
-      text-align: center;
-      font-size: 1.2rem;
-      margin-top: 2rem;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ITパスポート</title>
+<style>
+  body { font-family: sans-serif; margin:1rem; background:#f9f9f9; color:#333; }
+  h1 { text-align:center; font-size:1.4rem; margin-bottom:1rem; }
+  .tag-btn, #nextBtn {
+    display:block; width:100%; padding:0.8rem; margin:0.5rem 0;
+    border:1px solid #ccc; border-radius:6px; font-size:1rem; background:#fff;
+  }
+  #progress { font-size:0.9rem; text-align:right; margin:0.5rem 0; }
+  #question { margin:1rem 0; font-size:1rem; line-height:1.4; }
+  #options { list-style:none; padding:0; }
+  #options li { margin-bottom:0.6rem; }
+  #options button { width:100%; padding:0.8rem; border:1px solid #ccc; border-radius:6px; background:#fff; text-align:left; }
+  #options button:disabled { opacity:0.7; }
+  #result h2 { text-align:center; margin-top:2rem; }
+  #nextBtn { background:#0078d7; color:#fff; display:none; }
+  #nextBtn:hover { background:#005a9e; }
+</style>
 </head>
 <body>
-  <h1>ITパスポート</h1>
+<h1>ITパスポート</h1>
 
-  <div id="controls">
-    <button class="tag-btn" data-tag="ストラテジ">ストラテジ</button>
-    <button class="tag-btn" data-tag="マネジメント">マネジメント</button>
-    <button class="tag-btn" data-tag="テクノロジ">テクノロジ</button>
-    <button class="tag-btn" data-tag="syllabus63plus">
-      シラバス6.3以降<br>（教科書に無い新規追加問題）
-    </button>
-  </div>
+<div id="controls">
+  <button class="tag-btn" data-tag="ストラテジ">ストラテジ</button>
+  <button class="tag-btn" data-tag="マネジメント">マネジメント</button>
+  <button class="tag-btn" data-tag="テクノロジ">テクノロジ</button>
+  <button class="tag-btn" data-tag="syllabus63plus">シラバス6.3以降（新規追加）</button>
+</div>
 
-  <div id="quiz" style="display:none;">
-    <div id="progress"></div>
-    <div id="question"></div>
-    <ul id="options"></ul>
-  </div>
+<div id="quiz" style="display:none;">
+  <div id="progress"></div>
+  <div id="question"></div>
+  <ul id="options"></ul>
+  <button id="nextBtn">次へ ▶</button>
+</div>
 
-  <div id="result" style="display:none;"></div>
+<div id="result" style="display:none;"></div>
 
-  <script>
-    const NUM_EASY = 5, NUM_MID = 10, NUM_ADV = 5;
-    let questions = [], current = 0, score = 0;
+<script>
+const NUM_EASY=5,NUM_MID=10,NUM_ADV=5;
+let questions=[],current=0,score=0;
 
-    document.querySelectorAll('.tag-btn').forEach(btn => {
-      btn.addEventListener('click', () => startQuiz(btn.dataset.tag));
-    });
+document.querySelectorAll('.tag-btn').forEach(btn=>{
+  btn.onclick=()=>startQuiz(btn.dataset.tag);
+});
 
-    async function loadCSV(file) {
-      const res = await fetch(file);
-      let text = await res.text();
-      text = text.replace(/^\uFEFF/, '');
-      const rows = parseCSV(text).slice(1);
-      return rows.map(cols => ({
-        q: cols[1],
-        options: [cols[2], cols[3], cols[4], cols[5]],
-        answer: parseInt(cols[6], 10) - 1,
-        explanation: cols[7],
-        tag: cols[8],
-        difficulty: (cols[9]||'').trim()
-      }));
-    }
+async function loadCSV(file){
+  const text=await (await fetch(file)).text();
+  return text.trim().split("\n").slice(1).map(line=>{
+    const c=line.split(",");
+    return {q:c[1],options:c.slice(2,6),answer:+c[6]-1,explanation:c[7],difficulty:(c[9]||'').trim()};
+  });
+}
 
-    function parseCSV(text) {
-      const lines = text.split(/\r?\n/).filter(l => l.trim());
-      const result = [];
-      for (const line of lines) {
-        const row = [];
-        const regex = /"([^"]*)"|([^,]+)/g;
-        let match;
-        while (match = regex.exec(line)) {
-          row.push(match[1] !== undefined ? match[1] : match[2]);
-        }
-        result.push(row);
-      }
-      return result;
-    }
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function pick(pool,d,n){return shuffle(pool.filter(q=>q.difficulty===d)).slice(0,n);}
+function csvFileName(tag){return {ストラテジ:'strategy.csv',マネジメント:'management.csv',テクノロジ:'technology.csv',syllabus63plus:'syllabus63plus.csv'}[tag];}
 
-    async function startQuiz(tag) {
-      document.getElementById('controls').style.display = 'none';
-      const pool = await loadCSV(csvFileName(tag));
-      let sel;
-      if (tag === 'syllabus63plus') {
-        sel = shuffle(pool).slice(0, 20);
-      } else {
-        const easy = shuffle(pool.filter(q => q.difficulty === '初級'));
-        const mid  = shuffle(pool.filter(q => q.difficulty === '標準'));
-        const adv  = shuffle(pool.filter(q => q.difficulty === '応用'));
-        sel = [
-          ...easy.slice(0, NUM_EASY),
-          ...mid.slice(0, NUM_MID),
-          ...adv.slice(0, NUM_ADV)
-        ];
-      }
-      questions = shuffle(sel);
-      current = 0;
-      score = 0;
-      document.getElementById('result').style.display = 'none';
-      document.getElementById('quiz').style.display = '';
-      showQuestion();
-    }
+async function startQuiz(tag){
+  document.getElementById('controls').style.display='none';
+  const pool=await loadCSV(csvFileName(tag));
+  questions=(tag==='syllabus63plus')?shuffle(pool).slice(0,20):shuffle([...pick(pool,'初級',NUM_EASY),...pick(pool,'標準',NUM_MID),...pick(pool,'応用',NUM_ADV)]);
+  current=score=0;
+  document.getElementById('result').style.display='none';
+  document.getElementById('quiz').style.display='';
+  showQuestion();
+}
 
-    function csvFileName(tag) {
-      if (tag === 'ストラテジ') return 'strategy.csv';
-      if (tag === 'マネジメント') return 'management.csv';
-      if (tag === 'テクノロジ') return 'technology.csv';
-      if (tag === 'syllabus63plus') return 'syllabus63plus.csv';
-      return '';
-    }
+function showQuestion(){
+  const q=questions[current];
+  document.getElementById('progress').textContent=`問題 ${current+1}/${questions.length}`;
+  document.getElementById('question').textContent=q.q;
+  const ul=document.getElementById('options'); ul.innerHTML='';
+  q.options.forEach((opt,i)=>{
+    const li=document.createElement('li');
+    li.innerHTML=`<button>${opt}</button>`;
+    li.firstChild.onclick=()=>selectAnswer(i);
+    ul.appendChild(li);
+  });
+}
 
-    function shuffle(arr) {
-      for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
-      return arr;
-    }
+function selectAnswer(idx){
+  const q=questions[current],ul=document.getElementById('options');
+  [...ul.children].forEach((li,i)=>{
+    const b=li.firstChild; b.disabled=true;
+    if(i===q.answer)b.style.background='lightgreen';
+    else if(i===idx)b.style.background='salmon';
+  });
+  const quiz=document.getElementById('quiz');
+  const msg=document.createElement('p');
+  msg.innerHTML=(idx===q.answer?(score++,'<span style="color:green">🟢 正解！</span>'):`<span style="color:red">❌ 不正解</span><br><span style="color:#555">正解: ${q.options[q.answer]}</span>`);
+  const exp=document.createElement('p'); exp.textContent="解説: "+q.explanation;
+  quiz.append(msg,exp);
+  const next=document.getElementById('nextBtn');
+  next.style.display='block';
+  next.onclick=()=>{
+    msg.remove(); exp.remove(); next.style.display='none';
+    if(++current<questions.length)showQuestion(); else showResults();
+  };
+}
 
-    function showQuestion() {
-      const q = questions[current];
-      document.getElementById('progress').textContent = `問題 ${current + 1} / ${questions.length}`;
-      document.getElementById('question').textContent = q.q;
-      const ul = document.getElementById('options');
-      ul.innerHTML = '';
-      q.options.forEach((opt, i) => {
-        const li = document.createElement('li');
-        const btn = document.createElement('button');
-        btn.textContent = opt;
-        btn.addEventListener('click', () => selectAnswer(i));
-        li.appendChild(btn);
-        ul.appendChild(li);
-      });
-    }
-
-    function selectAnswer(idx) {
-      const q = questions[current];
-      const ul = document.getElementById('options');
-      [...ul.children].forEach((li, i) => {
-        const btn = li.firstChild;
-        btn.disabled = true;
-        if (i === q.answer) btn.style.backgroundColor = 'lightgreen';
-        else if (i === idx) btn.style.backgroundColor = 'salmon';
-      });
-      const resultMsg = document.createElement('p');
-      resultMsg.style.fontWeight = 'bold';
-      if (idx === q.answer) {
-        score++;
-        resultMsg.innerHTML = '<span style="color:green;font-weight:bold;">🟢 正解です！</span>';
-      } else {
-        resultMsg.innerHTML = `<span style="color:red;font-weight:bold;">❌ 不正解です</span><br>
-          <span style="color:#555;">正しい答えは「${q.options[q.answer]}」です</span>`;
-      }
-      const explanation = document.createElement('p');
-      explanation.textContent = "解説: " + q.explanation;
-      const quizEl = document.getElementById('quiz');
-      quizEl.appendChild(resultMsg);
-      quizEl.appendChild(explanation);
-      setTimeout(() => {
-        resultMsg.remove();
-        explanation.remove();
-        if (++current < questions.length) showQuestion();
-        else showResults();
-      }, 2000);
-    }
-
-    function showResults() {
-      document.getElementById('quiz').style.display = 'none';
-      const r = document.getElementById('result');
-      r.innerHTML = `<h2>結果: ${score} / ${questions.length}</h2>`;
-      r.style.display = '';
-      document.getElementById('controls').style.display = '';
-    }
-  </script>
+function showResults(){
+  document.getElementById('quiz').style.display='none';
+  const r=document.getElementById('result');
+  r.innerHTML=`<h2>結果: ${score}/${questions.length}</h2>`;
+  r.style.display='';
+  document.getElementById('controls').style.display='';
+}
+</script>
 </body>
 </html>
