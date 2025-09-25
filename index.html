@@ -5,17 +5,28 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>ITパスポート</title>
 <style>
-  body { font-family: sans-serif; margin:1rem; background:#f9f9f9; color:#333; }
-  h1 { text-align:center; font-size:1.4rem; margin-bottom:1rem; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0;
+    padding: 1rem;
+    background: #f9f9f9;
+    color: #333;
+    font-size: 20px;   /* スマホ向けに大きめ */
+    line-height: 1.6;
+  }
+  h1 { text-align:center; font-size:2rem; margin-bottom:1rem; }
   .tag-btn, #nextBtn {
-    display:block; width:100%; padding:0.8rem; margin:0.5rem 0;
-    border:1px solid #ccc; border-radius:6px; font-size:1rem; background:#fff;
+    display:block; width:100%; padding:1rem; margin:0.5rem 0;
+    border:1px solid #ccc; border-radius:6px; font-size:1.1rem; background:#fff;
   }
   #progress { font-size:0.9rem; text-align:right; margin:0.5rem 0; }
-  #question { margin:1rem 0; font-size:1rem; line-height:1.4; }
+  #question { margin:1rem 0; font-size:1.3rem; line-height:1.6; }
   #options { list-style:none; padding:0; }
   #options li { margin-bottom:0.6rem; }
-  #options button { width:100%; padding:0.8rem; border:1px solid #ccc; border-radius:6px; background:#fff; text-align:left; }
+  #options button {
+    width:100%; padding:1rem; font-size:1.1rem;
+    border:1px solid #ccc; border-radius:6px; background:#fff; text-align:left;
+  }
   #options button:disabled { opacity:0.7; }
   #result h2 { text-align:center; margin-top:2rem; }
   #nextBtn { background:#0078d7; color:#fff; display:none; }
@@ -51,7 +62,7 @@ document.querySelectorAll('.tag-btn').forEach(btn=>{
 
 async function loadCSV(file){
   const text=await (await fetch(file)).text();
-  return text.trim().split("\n").slice(1).map(line=>{
+  return text.trim().split(/\r?\n/).slice(1).map(line=>{
     const c=line.split(",");
     return {q:c[1],options:c.slice(2,6),answer:+c[6]-1,explanation:c[7],difficulty:(c[9]||'').trim()};
   });
