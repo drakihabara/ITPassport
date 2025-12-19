@@ -2,134 +2,319 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>ITパスポート演習</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>ITパスポート</title>
     <style>
-        body { font-family: sans-serif; line-height: 1.6; max-width: 800px; margin: 20px auto; padding: 0 10px; }
-        .question-box { background: #f9f9f9; padding: 15px; border: 1px solid #ddd; border-radius: 5px; margin: 10px 0; }
-        .option-btn { display: block; width: 100%; text-align: left; margin: 5px 0; padding: 10px; cursor: pointer; }
-        #explanation-container { background: #eef; padding: 15px; border-left: 5px solid #33f; margin-top: 20px; }
-        .correct { color: #27ae60; font-weight: bold; }
-        .incorrect { color: #c0392b; font-weight: bold; }
-        button:disabled { cursor: default; opacity: 0.7; }
-        .term-item { margin-top: 10px; font-size: 0.9em; padding: 5px; background: #fff; border: 1px solid #ccc; }
+        :root {
+            --main: #3498db;
+            --bg: #f0f2f5;
+            --card: #ffffff;
+            --red: #e74c3c;
+            --green: #2ecc71;
+            --text: #333;
+            --border: #ccc;
+            --disabled: #bdc3c7;
+        }
+
+        body, button, .card {
+            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body { background-color: var(--bg); margin: 0; min-height: 100vh; color: var(--text); overflow-x: hidden; }
+
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; padding-bottom: 60px; display: flex; flex-direction: column; align-items: center; }
+        .screen { display: none; width: 100%; flex-direction: column; align-items: center; }
+        .active { display: flex; }
+
+        h1 { font-size: 28px; margin: 20px 0 40px; text-align: center; cursor: pointer; }
+
+        button { border: none; cursor: pointer; font-weight: bold; transition: transform 0.1s; }
+        button:active:not(:disabled) { transform: scale(0.96); }
+
+        .main-btn, .list-btn { width: 280px; padding: 18px 0; border-radius: 30px; font-size: 18px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .main-btn { background: var(--main); color: white; }
+        
+        /* 単語帳ボタン（有効時） */
+        .list-btn { background: white; color: var(--main); border: 2px solid var(--main); }
+        /* 単語帳ボタン（無効時） */
+        .list-btn:disabled { background: #eee; color: #aaa; border-color: #ccc; cursor: default; box-shadow: none; }
+
+        /* --- クイズ画面 --- */
+        #quiz-question { margin: 2rem 0 1.5rem; font-size: 1.25rem; font-weight: bold; line-height: 1.6; text-align: left; width: 100%; }
+        .options-list { list-style: none; padding: 0; margin: 0; width: 100%; }
+        .options-list li { margin-bottom: 12px; }
+        .options-list button { width: 100%; padding: 1.1rem; font-size: 1.1rem; border: 1px solid var(--border); border-radius: 12px; background: #fff; text-align: left; line-height: 1.4; color: var(--text); }
+
+        /* --- 単語帳カード（ドリル） --- */
+        #card-container { position: relative; width: 310px; height: 420px; margin-bottom: 30px; }
+        .card { 
+            width: 100%; height: 100%; background: white; border-radius: 25px; 
+            box-shadow: 0 6px 20px rgba(0,0,0,0.06); display: flex; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center; padding: 30px;
+            box-sizing: border-box;
+        }
+        .v-name { font-size: 36px; font-weight: bold; color: var(--main); width: 100%; line-height: 1.2; margin-bottom: 20px; }
+        .ja-area { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; position: relative; }
+        
+        .v-def { font-size: 24px; font-weight: bold; color: var(--red); opacity: 0; transition: opacity 0.2s; pointer-events: none; line-height: 1.4; position: absolute; width: 100%; }
+        .v-def.show { opacity: 1; }
+        /* 文字の中央配置を保証 */
+        .hint-text { font-size: 16px; color: #ccc; width: 100%; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+
+        .controls { width: 100%; max-width: 320px; display: flex; gap: 15px; }
+        .action-btn { flex: 1; height: 65px; border-radius: 35px; font-size: 17px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .btn-check { background-color: #ffe0b2; color: #d35400; }
+        .btn-master { background-color: #c8e6c9; color: #27ae60; }
+
+        /* --- 解説モーダル --- */
+        #overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(240, 242, 245, 0.85); 
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            display: none; z-index: 100; align-items: center; justify-content: center;
+        }
+        #modal { background: #fff; padding: 1.8rem; border-radius: 20px; width: 90%; max-width: 420px; border: 1px solid #eee; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        #modal-message { text-align: center; margin-bottom: 10px; }
+        #modal-explanation { font-size: 1rem; color: #444; margin-top: 1.2rem; border-top: 1.5px solid #f0f0f0; padding-top: 1.2rem; line-height: 1.6; }
+        #modalNextBtn { width: 100%; padding: 1.1rem; margin-top: 1.8rem; border-radius: 30px; background: var(--main); color: #fff; font-size: 1.1rem; }
+
+        .reset-link { margin-top: 40px; font-size: 12px; color: #bbb; text-decoration: underline; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div id="start-screen">
-        <h1>ITパスポート 演習</h1>
-        <p>カテゴリーを選択してください：</p>
-        <button onclick="startQuiz('テクノロジ')">テクノロジ</button>
-        <button onclick="startQuiz('マネジメント')">マネジメント</button>
-        <button onclick="startQuiz('ストラテジ')">ストラテジ</button>
+<div class="container">
+    <h1 id="main-title" onclick="location.reload()">ITパスポート</h1>
+
+    <div id="screen-home" class="screen active">
+        <button class="main-btn" onclick="startQuiz('ストラテジ')">ストラテジ系</button>
+        <button class="main-btn" onclick="startQuiz('マネジメント')">マネジメント系</button>
+        <button class="main-btn" onclick="startQuiz('テクノロジ')">テクノロジ系</button>
+        <button class="main-btn" onclick="startQuiz('ALL')">全分野ランダム</button>
+        <button id="vocab-btn" class="list-btn" style="margin-top:20px;" onclick="startVocabMode()">単語帳モード</button>
+        <div class="reset-link" onclick="resetAllData()">学習データをリセット</div>
     </div>
 
-    <div id="quiz-screen" style="display:none;">
-        <h2 id="current-category"></h2>
-        <p id="current-num"></p>
-        <div id="question-text" class="question-box"></div>
-        <div id="options-container"></div>
-        
-        <div id="explanation-container" style="display:none;">
-            <div id="result-msg"></div>
-            <p id="explanation-text"></p>
-            <div id="term-list"></div>
-            <button onclick="toNext()">次の問題へ</button>
+    <div id="screen-quiz" class="screen">
+        <div id="quiz-question"></div>
+        <ul id="options" class="options-list"></ul>
+    </div>
+
+    <div id="screen-vocab" class="screen">
+        <div id="card-container">
+            <div class="card" id="card-face">
+                <div class="v-name" id="v-name"></div>
+                <div class="ja-area">
+                    <div class="hint-text" id="v-hint">タップして意味を表示</div>
+                    <div class="v-def" id="v-def"></div>
+                </div>
+            </div>
+        </div>
+        <div class="controls">
+            <button class="action-btn btn-check" onclick="handleVocabResult(false)">まだ...</button>
+            <button class="action-btn btn-master" onclick="handleVocabResult(true)">覚えた！</button>
         </div>
     </div>
+</div>
 
-    <script>
-        let allQuestions = [];
-        let allTerms = {};
-        let quizList = [];
-        let cursor = 0;
-        let correctCount = 0;
+<div id="overlay">
+    <div id="modal">
+        <div id="modal-message"></div>
+        <div id="modal-explanation"></div>
+        <button id="modalNextBtn">次へ ▶</button>
+    </div>
+</div>
 
-        // 起動時にJSONを読み込む
-        window.onload = async () => {
-            try {
-                const [qRes, tRes] = await Promise.all([
-                    fetch('questions.json'),
-                    fetch('terms.json')
-                ]);
-                allQuestions = await qRes.json();
-                allTerms = await tRes.json();
-            } catch (e) {
-                console.error("データ読み込み失敗。JSONの形式を確認してください。");
+<script>
+    let allData = { questions: [], terms: {} };
+    let sessionQueue = [];
+    let vocabQueue = [];
+    let currentIdx = 0;
+    let isAnswerShown = false;
+    let isReviewMode = false; // クイズ直後の復習ドリルかどうか
+
+    const KEY_LEARN = 'itp_v11_learn';
+    const KEY_QCNT  = 'itp_v11_qcnt';
+    const KEY_VCNT  = 'itp_v11_vcnt';
+
+    let learningList = new Set(JSON.parse(localStorage.getItem(KEY_LEARN)) || []);
+    let qCounts = JSON.parse(localStorage.getItem(KEY_QCNT)) || {}; 
+    let vCounts = JSON.parse(localStorage.getItem(KEY_VCNT)) || {}; 
+
+    window.onload = init;
+
+    async function init() {
+        try {
+            const [resQ, resT] = await Promise.all([fetch('questions.json'), fetch('terms.json')]);
+            allData.questions = await resQ.json();
+            allData.terms = await resT.json();
+            updateVocabButtonState();
+        } catch (e) { console.error("Data Load Error"); }
+    }
+
+    function changeScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.getElementById('main-title').style.display = (id === 'screen-home') ? 'block' : 'none';
+    }
+
+    // 単語帳ボタンの無効化処理
+    function updateVocabButtonState() {
+        const btn = document.getElementById('vocab-btn');
+        btn.disabled = (learningList.size === 0);
+    }
+
+    // --- クイズロジック ---
+    function startQuiz(cat) {
+        sessionQueue = []; vocabQueue = [];
+        const filter = (n) => allData.questions.filter(q => (cat === 'ALL' || q.category === cat) && (qCounts[q.id] || 0) === n);
+        const pick = (target, needed, n) => {
+            let pool = filter(n).filter(x => !target.includes(x));
+            if (pool.length < needed) {
+                pool = [...pool, ...allData.questions.filter(q => (qCounts[q.id] || 0) === n && !target.includes(q) && !pool.includes(q))];
             }
+            return pool.sort(() => Math.random() - 0.5).slice(0, needed);
         };
-
-        // 指定カテゴリーで開始（全分野ボタンは削除）
-        function startQuiz(cat) {
-            quizList = allQuestions.filter(q => q.category === cat);
-            if (quizList.length === 0) return;
-
-            cursor = 0;
-            correctCount = 0;
-            document.getElementById('start-screen').style.display = 'none';
-            document.getElementById('quiz-screen').style.display = 'block';
-            render();
+        sessionQueue.push(...pick([], 7, 0));
+        sessionQueue.push(...pick(sessionQueue, 2, 1));
+        sessionQueue.push(...pick(sessionQueue, 1, 2));
+        if (sessionQueue.length < 10) {
+            let others = allData.questions.filter(q => !sessionQueue.includes(q) && (qCounts[q.id] || 0) < 3).sort(() => Math.random() - 0.5);
+            sessionQueue.push(...others.slice(0, 10 - sessionQueue.length));
         }
+        currentIdx = 0; changeScreen('screen-quiz'); renderQuiz();
+    }
 
-        // 問題を表示
-        function render() {
-            const q = quizList[cursor];
-            document.getElementById('current-category').innerText = q.category;
-            document.getElementById('current-num').innerText = `問題 ${cursor + 1} / ${quizList.length}`;
-            document.getElementById('question-text').innerText = q.question;
-            
-            const optCont = document.getElementById('options-container');
-            optCont.innerHTML = "";
-            q.options.forEach((opt, i) => {
-                const b = document.createElement('button');
-                b.className = "option-btn";
-                b.innerText = opt;
-                b.onclick = () => answer(i);
-                optCont.appendChild(b);
-            });
-            
-            document.getElementById('explanation-container').style.display = 'none';
-        }
+    function renderQuiz() {
+        const q = sessionQueue[currentIdx];
+        document.getElementById('quiz-question').innerHTML = q.question;
+        const ul = document.getElementById('options'); ul.innerHTML = '';
+        q.options.forEach((opt, i) => {
+            const li = document.createElement('li');
+            const b = document.createElement('button');
+            b.innerText = opt;
+            b.onclick = () => checkQuiz(i);
+            li.appendChild(b); ul.appendChild(li);
+        });
+    }
 
-        // 正誤判定
-        function answer(idx) {
-            const q = quizList[cursor];
-            const isCorrect = (idx === q.answer);
-            if (isCorrect) correctCount++;
-
-            const resMsg = document.getElementById('result-msg');
-            resMsg.innerText = isCorrect ? "【正解】" : `【不正解】正解：${q.options[q.answer]}`;
-            resMsg.className = isCorrect ? "correct" : "incorrect";
-            
-            document.getElementById('explanation-text').innerText = q.explanation;
-            
-            // 用語解説
-            const tList = document.getElementById('term-list');
-            tList.innerHTML = "<strong>用語解説:</strong>";
+    function checkQuiz(idx) {
+        const q = sessionQueue[currentIdx];
+        const isCorrect = (idx === q.answer);
+        if (isCorrect) {
+            qCounts[q.id] = (qCounts[q.id] || 0) + 1;
+            if (qCounts[q.id] >= 3) {
+                q.term_ids.forEach(tid => learningList.delete(tid));
+            }
+            showModal(true, "", q.explanation);
+        } else {
+            qCounts[q.id] = 0;
             q.term_ids.forEach(tid => {
-                const t = allTerms[tid];
-                if (t) {
-                    const d = document.createElement('div');
-                    d.className = "term-item";
-                    d.innerHTML = `<strong>${t.name}</strong>: ${t.def}`;
-                    tList.appendChild(d);
-                }
+                vCounts[tid] = 0;
+                learningList.add(tid);
+                if (!vocabQueue.includes(tid)) vocabQueue.push(tid);
             });
-
-            document.getElementById('explanation-container').style.display = 'block';
-            document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+            showModal(false, q.options[q.answer], q.explanation);
         }
+        saveData();
+    }
 
-        // 次の問題へ
-        function toNext() {
-            cursor++;
-            if (cursor < quizList.length) {
-                render();
+    function showModal(isCorrect, ans, exp) {
+        const msg = document.getElementById('modal-message');
+        msg.innerHTML = isCorrect ? '<h2 style="color:var(--green); margin:0;">🟢 正解</h2>' : `<h2 style="color:var(--red); margin:0;">❌ 不正解</h2><p style="margin:5px 0; color:#666;">正解: ${ans}</p>`;
+        document.getElementById('modal-explanation').innerText = "解説: " + exp;
+        document.getElementById('overlay').style.display = 'flex';
+    }
+
+    document.getElementById('modalNextBtn').onclick = () => {
+        document.getElementById('overlay').style.display = 'none';
+        if (++currentIdx < sessionQueue.length) {
+            renderQuiz();
+        } else {
+            if (vocabQueue.length > 0) {
+                currentIdx = 0;
+                isReviewMode = true; // 復習モード開始
+                changeScreen('screen-vocab');
+                renderVocab();
             } else {
-                alert(`終了！正解数: ${correctCount} / ${quizList.length}`);
                 location.reload();
             }
         }
-    </script>
+    };
+
+    // --- 単語帳ドリル ---
+    function startVocabMode() {
+        const list = Array.from(learningList);
+        if (list.length === 0) return; // ボタン無効化されているため通常は通らない
+        
+        isReviewMode = false; // 通常の学習モード
+        vocabQueue = [];
+        const pickV = (needed, n) => list.filter(tid => (vCounts[tid] || 0) === n).sort(() => Math.random() - 0.5).slice(0, needed);
+        vocabQueue.push(...pickV(7, 0));
+        vocabQueue.push(...pickV(2, 1));
+        vocabQueue.push(...pickV(1, 2));
+
+        if (vocabQueue.length < 10 && list.length > vocabQueue.length) {
+            vocabQueue.push(...list.filter(t => !vocabQueue.includes(t)).sort(() => Math.random() - 0.5).slice(0, 10 - vocabQueue.length));
+        }
+        currentIdx = 0; changeScreen('screen-vocab'); renderVocab();
+    }
+
+    function renderVocab() {
+        const tid = vocabQueue[currentIdx];
+        const t = allData.terms[tid];
+        isAnswerShown = false;
+        document.getElementById('v-name').innerText = t.name;
+        document.getElementById('v-def').innerText = t.def;
+        document.getElementById('v-def').classList.remove('show');
+        document.getElementById('v-hint').style.display = 'block';
+        document.getElementById('v-controls').style.display = 'none';
+    }
+
+    document.getElementById('card-face').onclick = () => {
+        if (!isAnswerShown) {
+            isAnswerShown = true;
+            document.getElementById('v-hint').style.display = 'none';
+            document.getElementById('v-def').classList.add('show');
+            document.getElementById('v-controls').style.display = 'flex';
+        }
+    };
+
+    function handleVocabResult(isMastered) {
+        const tid = vocabQueue[currentIdx];
+        if (isMastered) {
+            triggerHaptic(true);
+            // 【修正】クイズ直後の復習モード（isReviewMode=true）ではカウントを増やさない
+            if (!isReviewMode) {
+                vCounts[tid] = (vCounts[tid] || 0) + 1;
+                if (vCounts[tid] >= 3) learningList.delete(tid);
+            }
+            currentIdx++;
+        } else {
+            triggerHaptic(false);
+            vCounts[tid] = 0;
+            vocabQueue.push(vocabQueue.splice(currentIdx, 1)[0]);
+        }
+        saveData();
+        if (currentIdx < vocabQueue.length) renderVocab();
+        else location.reload();
+    }
+
+    function saveData() {
+        localStorage.setItem(KEY_LEARN, JSON.stringify(Array.from(learningList)));
+        localStorage.setItem(KEY_QCNT, JSON.stringify(qCounts));
+        localStorage.setItem(KEY_VCNT, JSON.stringify(vCounts));
+        updateVocabButtonState();
+    }
+
+    function triggerHaptic(good) {
+        if (navigator.vibrate) good ? navigator.vibrate(50) : navigator.vibrate([30, 50, 30]);
+    }
+
+    function resetAllData() { if(confirm("学習記録をリセットしますか？")) { localStorage.clear(); location.reload(); } }
+</script>
 </body>
 </html>
