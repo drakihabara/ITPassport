@@ -3,174 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>ITパスポート 習得支援アプリ</title>
+    <title>ITパスポート</title>
     <style>
-        :root {
-            --bg-color: #ffffff;
-            --text-main: #1a1a1b;
-            --border: #e0e0e0;
-            --correct: #2e7d32;
-            --incorrect: #d32f2f;
-            --secondary: #607d8b;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f5f5f7;
-            color: var(--text-main);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .container {
-            max-width: 900px;
-            width: 100%;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        @media (max-width: 768px) {
-            .container { grid-template-columns: 1fr; }
-        }
-
-        /* 問題エリア */
-        .section-card {
-            background: white;
-            border: 1px solid var(--border);
-            padding: 24px;
-            border-radius: 4px;
-        }
-
-        .meta { font-size: 0.8rem; color: var(--secondary); margin-bottom: 8px; font-weight: bold; }
-        .question-text { font-size: 1.15rem; font-weight: 500; margin-bottom: 24px; line-height: 1.6; }
-
-        .options { display: flex; flex-direction: column; gap: 12px; }
-        .opt-btn {
-            text-align: left;
-            padding: 16px;
-            border: 1px solid var(--border);
-            background: white;
-            cursor: pointer;
-            font-size: 1rem;
-            border-radius: 2px;
-            transition: background 0.2s;
-        }
-        .opt-btn:hover { background: #f8f9fa; }
+        :root { --main: #1a1a1a; --border: #333; --gray: #757575; --light: #f5f5f5; }
+        body { font-family: sans-serif; margin: 0; background: #fff; color: var(--main); line-height: 1.6; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
         
+        header { border-bottom: 2px solid var(--main); margin-bottom: 20px; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: baseline; }
+        h1 { margin: 0; font-size: 1.5rem; letter-spacing: 0.1rem; cursor: pointer; }
+        
+        /* メニュー画面 */
+        .menu-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 40px; }
+        .menu-btn { padding: 20px; border: 1px solid var(--border); background: #fff; cursor: pointer; font-size: 1.1rem; text-align: left; }
+        .menu-btn:hover { background: var(--light); }
+
+        /* クイズ・単語帳共通 */
+        .screen { display: none; }
+        .active { display: block; }
+        
+        .meta { color: var(--gray); font-size: 0.85rem; margin-bottom: 10px; }
+        .q-text { font-size: 1.2rem; font-weight: bold; margin-bottom: 30px; }
+        .options { display: flex; flex-direction: column; gap: 10px; }
+        .opt-btn { text-align: left; padding: 18px; border: 1px solid var(--border); background: #fff; cursor: pointer; font-size: 1rem; }
+        .opt-btn:hover:not(:disabled) { background: var(--light); }
+
+        /* 解説・結果 */
+        #feedback { margin-top: 30px; padding: 20px; border: 2px solid var(--main); display: none; }
+        .action-btn { margin-top: 20px; width: 100%; padding: 15px; background: var(--main); color: #fff; border: none; cursor: pointer; font-size: 1rem; }
+
+        /* 単語帳モード */
+        .term-item { border-bottom: 1px solid var(--border); padding: 15px 0; }
+        .term-name { font-weight: bold; font-size: 1.1rem; }
+        .term-def { font-size: 0.9rem; color: #444; margin-top: 5px; }
+
         /* 「まだ」ボタン */
-        .not-yet-btn {
-            margin-top: 20px;
-            width: 100%;
-            padding: 12px;
-            background: #eeeeee;
-            border: 1px solid var(--border);
-            cursor: pointer;
-            font-weight: bold;
-            color: var(--secondary);
-        }
+        .still-btn { margin-top: 40px; width: 100%; padding: 12px; background: none; border: 1px solid var(--gray); color: var(--gray); cursor: pointer; }
 
-        /* 習得済みリスト（大型化） */
-        .learned-section {
-            background: white;
-            border: 1px solid var(--border);
-            padding: 24px;
-            min-height: 400px;
-        }
-        .learned-title { font-size: 1.2rem; border-bottom: 2px solid var(--text-main); padding-bottom: 8px; margin-bottom: 16px; }
-        .learned-grid { display: flex; flex-wrap: wrap; gap: 8px; }
-        .keyword-chip {
-            background: #f1f3f4;
-            border: 1px solid var(--border);
-            padding: 6px 12px;
-            font-size: 0.9rem;
-            color: var(--text-main);
-        }
-
-        /* 解説エリア */
-        #feedback {
-            display: none;
-            margin-top: 20px;
-            padding: 16px;
-            border: 1px solid var(--border);
-        }
-
-        /* 右下のデータリセットボタン (スマホUI考慮) */
-        .reset-container {
-            position: fixed;
-            right: 20px;
-            bottom: 40px; /* スマホのバーを避けるため少し上げる */
-        }
-        .reset-btn {
-            background: none;
-            border: 1px solid var(--border);
-            color: #999;
-            font-size: 0.75rem;
-            padding: 8px 12px;
-            cursor: pointer;
-        }
-
-        .action-btn {
-            margin-top: 16px;
-            padding: 12px 24px;
-            background: var(--text-main);
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
+        /* リセットボタン（右下） */
+        .footer-tools { position: fixed; right: 20px; bottom: 40px; z-index: 100; }
+        .reset-link { font-size: 0.75rem; color: #999; border: none; background: none; text-decoration: underline; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="section-card">
-        <div class="meta">
-            <span id="category">CATEGORY</span> | <span id="q-id">ID</span>
-        </div>
-        <div id="q-text" class="question-text">読み込み中...</div>
-        <div id="options" class="options"></div>
-        <button class="not-yet-btn" onclick="handleNotYet()">まだ（理解不足としてリセット）</button>
+    <header>
+        <h1 onclick="showScreen('home')">ITパスポート</h1>
+        <div id="top-stats" style="font-size:0.9rem; font-weight:bold;">習得: <span id="master-count">0</span></div>
+    </header>
 
+    <div id="home" class="screen active">
+        <div class="menu-grid">
+            <button class="menu-btn" onclick="startQuiz('ストラテジ')">1. ストラテジ系を解く</button>
+            <button class="menu-btn" onclick="startQuiz('マネジメント')">2. マネジメント系を解く</button>
+            <button class="menu-btn" onclick="startQuiz('テクノロジ')">3. テクノロジ系を解く</button>
+            <button class="menu-btn" onclick="startQuiz('ALL')">4. 全分野からランダム</button>
+            <button class="menu-btn" style="border-style: dashed;" onclick="showVocab()">📚 単語帳モード（習得済みのみ）</button>
+        </div>
+    </div>
+
+    <div id="quiz" class="screen">
+        <div class="meta"><span id="q-cat">-</span> | <span id="q-id">-</span></div>
+        <div id="q-text" class="q-text">-</div>
+        <div id="options" class="options"></div>
+        <button class="still-btn" onclick="jointReset()">まだ（自信なし：関連用語をリセット）</button>
+        
         <div id="feedback">
-            <div id="result-msg" style="font-weight: bold; margin-bottom: 8px;"></div>
-            <div id="explanation" style="font-size: 0.95rem; color: #444;"></div>
+            <div id="res-msg" style="font-weight:bold; margin-bottom:10px;"></div>
+            <div id="explanation"></div>
             <button class="action-btn" onclick="nextQuestion()">次の問題へ</button>
         </div>
     </div>
 
-    <div class="learned-section">
-        <div class="learned-title">習得済み用語リスト (<span id="count">0</span>)</div>
-        <div id="keyword-list" class="learned-grid"></div>
+    <div id="vocab" class="screen">
+        <h3>習得済み単語帳</h3>
+        <p class="meta">問題を正解するとここに定義が追加されます。</p>
+        <div id="vocab-list"></div>
+        <button class="action-btn" onclick="showScreen('home')">メニューに戻る</button>
     </div>
 </div>
 
-<div class="reset-container">
-    <button class="reset-btn" onclick="resetAllData()">データをリセット</button>
+<div class="footer-tools">
+    <button class="reset-link" onclick="fullReset()">学習データの初期化</button>
 </div>
 
 <script>
-// 正規化されたサンプルデータ
-const appData = {
-    questions: [
-        { id: "MG-001", category: "マネジメント", question: "サービス提供時間帯のうち, 実際に利用できた時間の割合を示す指標は？", options: ["可用性", "機能性", "効率性", "使用性"], answer: 0, explanation: "可用性はSLAでも重要な指標であり、システムの継続稼働能力を示します。", term_ids: ["t1", "t2"] },
-        { id: "ST-004", category: "ストラテジ", question: "経営資源を「価値・希少性・模倣困難性・組織」で分析する手法は？", options: ["SWOT", "PPM", "3C", "VRIO"], answer: 3, explanation: "VRIO分析は内部資源の競争優位を評価するフレームワークです。", term_ids: ["t3"] },
-        { id: "TC-006", category: "テクノロジ", question: "一連の処理が全て成功するか失敗するかのどちらかになる性質は？", options: ["一貫性", "原子性", "耐久性", "独立性"], answer: 1, explanation: "トランザクションの原子性(Atomicity)は、中途半端な状態を許さない性質です。", term_ids: ["t4"] }
-    ],
-    terms: {
-        "t1": { name: "可用性" }, "t2": { name: "SLA" },
-        "t3": { name: "VRIO分析" }, "t4": { name: "原子性" }
-    }
-};
-
-let masteredIds = new Set(JSON.parse(localStorage.getItem('mastered')) || []);
+let allData = { questions: [], terms: {} };
+let filteredQuestions = [];
 let currentIndex = 0;
+let mastered = new Set(JSON.parse(localStorage.getItem('itp_mastered')) || []);
 
-function render() {
-    const q = appData.questions[currentIndex];
-    document.getElementById('category').innerText = q.category;
+// 初期化
+async function init() {
+    try {
+        const res = await fetch('questions.json');
+        allData = await res.json();
+        updateStats();
+    } catch (e) {
+        alert("questions.jsonが見つかりません。");
+    }
+}
+
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+
+// クイズ開始
+function startQuiz(cat) {
+    if (cat === 'ALL') {
+        filteredQuestions = [...allData.questions].sort(() => Math.random() - 0.5);
+    } else {
+        filteredQuestions = allData.questions.filter(q => q.category === cat);
+    }
+    
+    if (filteredQuestions.length === 0) return alert("問題がありません");
+    currentIndex = 0;
+    showScreen('quiz');
+    renderQuestion();
+}
+
+function renderQuestion() {
+    const q = filteredQuestions[currentIndex];
+    document.getElementById('q-cat').innerText = q.category;
     document.getElementById('q-id').innerText = q.id;
     document.getElementById('q-text').innerText = q.question;
     document.getElementById('feedback').style.display = 'none';
@@ -178,78 +133,89 @@ function render() {
     const container = document.getElementById('options');
     container.innerHTML = '';
     q.options.forEach((opt, i) => {
-        const btn = document.createElement('button');
-        btn.className = 'opt-btn';
-        btn.innerText = opt;
-        btn.onclick = () => checkAnswer(i);
-        container.appendChild(btn);
+        const b = document.createElement('button');
+        b.className = 'opt-btn';
+        b.innerText = opt;
+        b.onclick = () => check(i);
+        container.appendChild(b);
     });
-    updateListUI();
 }
 
-function checkAnswer(idx) {
-    const q = appData.questions[currentIndex];
+function check(idx) {
+    const q = filteredQuestions[currentIndex];
     const isCorrect = (idx === q.answer);
-    showFeedback(isCorrect, q);
+    const msg = document.getElementById('res-msg');
     
     if (isCorrect) {
-        q.term_ids.forEach(id => masteredIds.add(id));
+        msg.innerText = "⭕ 正解";
+        msg.style.color = "green";
+        q.term_ids.forEach(tid => mastered.add(tid));
     } else {
-        // 不正解時の連帯責任リセット
-        q.term_ids.forEach(id => masteredIds.delete(id));
+        msg.innerText = "❌ 不正解（関連用語をリセット）";
+        msg.style.color = "red";
+        q.term_ids.forEach(tid => mastered.delete(tid));
     }
-    saveAndRefresh();
+    
+    finalizeAnswer(q);
 }
 
-function handleNotYet() {
-    const q = appData.questions[currentIndex];
-    // 「まだ」を押した場合は関連用語をすべてリセット
-    q.term_ids.forEach(id => masteredIds.delete(id));
-    showFeedback(false, q, "理解度リセット済み");
-    saveAndRefresh();
+function jointReset() {
+    const q = filteredQuestions[currentIndex];
+    q.term_ids.forEach(tid => mastered.delete(tid));
+    document.getElementById('res-msg').innerText = "未習得にリセットしました";
+    document.getElementById('res-msg').style.color = "#757575";
+    finalizeAnswer(q);
 }
 
-function showFeedback(correct, q, altMsg) {
-    const fb = document.getElementById('feedback');
-    const msg = document.getElementById('result-msg');
-    fb.style.display = 'block';
-    msg.innerText = altMsg || (correct ? "正解" : "不正解");
-    msg.style.color = correct ? "var(--correct)" : "var(--incorrect)";
+function finalizeAnswer(q) {
     document.getElementById('explanation').innerText = q.explanation;
+    document.getElementById('feedback').style.display = 'block';
     document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
+    save();
 }
 
-function updateListUI() {
-    const list = document.getElementById('keyword-list');
+// 単語帳表示
+function showVocab() {
+    showScreen('vocab');
+    const list = document.getElementById('vocab-list');
     list.innerHTML = '';
-    masteredIds.forEach(id => {
-        const span = document.createElement('span');
-        span.className = 'keyword-chip';
-        span.innerText = appData.terms[id].name;
-        list.appendChild(span);
-    });
-    document.getElementById('count').innerText = masteredIds.size;
-}
+    
+    if (mastered.size === 0) {
+        list.innerHTML = '<p>まだ習得した単語はありません。</p>';
+        return;
+    }
 
-function saveAndRefresh() {
-    localStorage.setItem('mastered', JSON.stringify([...masteredIds]));
-    updateListUI();
+    mastered.forEach(tid => {
+        const term = allData.terms[tid];
+        const div = document.createElement('div');
+        div.className = 'term-item';
+        div.innerHTML = `<div class="term-name">${term.name}</div><div class="term-def">${term.def}</div>`;
+        list.appendChild(div);
+    });
 }
 
 function nextQuestion() {
-    currentIndex = (currentIndex + 1) % appData.questions.length;
-    render();
+    currentIndex = (currentIndex + 1) % filteredQuestions.length;
+    renderQuestion();
 }
 
-function resetAllData() {
-    if(confirm('全ての学習データを削除しますか？')) {
-        masteredIds.clear();
-        saveAndRefresh();
+function save() {
+    localStorage.setItem('itp_mastered', JSON.stringify([...mastered]));
+    updateStats();
+}
+
+function updateStats() {
+    document.getElementById('master-count').innerText = mastered.size;
+}
+
+function fullReset() {
+    if(confirm('全てのデータを初期化しますか？')) {
+        localStorage.clear();
         location.reload();
     }
 }
 
-render();
+init();
 </script>
 </body>
 </html>
