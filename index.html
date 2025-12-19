@@ -2,70 +2,98 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
     <title>ITパスポート</title>
     <style>
-        :root { --main: #1a1a1a; --border: #333; --light: #f5f5f5; --red: #d32f2f; --green: #2e7d32; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, sans-serif; margin: 0; padding: 20px; color: var(--main); background: #fff; line-height: 1.6; }
-        .container { max-width: 600px; margin: 0 auto; padding-bottom: 120px; }
-        header { border-bottom: 2px solid var(--main); margin-bottom: 20px; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: baseline; }
-        h1 { margin: 0; font-size: 1.5rem; letter-spacing: 0.1rem; cursor: pointer; }
-        .screen { display: none; } .active { display: block; }
-        .btn { padding: 20px; border: 1px solid var(--border); background: #fff; cursor: pointer; font-size: 1.1rem; text-align: left; width: 100%; border-radius: 4px; margin-bottom: 10px; }
-        .btn:hover { background: var(--light); }
-        .meta { color: #666; font-size: 0.8rem; margin-bottom: 5px; }
-        .q-text { font-size: 1.2rem; font-weight: bold; margin-bottom: 20px; }
-        .options { display: flex; flex-direction: column; gap: 10px; }
-        .opt-btn { text-align: left; padding: 18px; border: 1px solid var(--border); background: #fff; cursor: pointer; font-size: 1rem; border-radius: 4px; }
-        .opt-btn:disabled { opacity: 0.5; }
-        .still-btn { margin-top: 30px; padding: 15px; background: none; border: 1px solid #999; color: #666; width: 100%; cursor: pointer; font-size: 0.9rem; }
-        #feedback { margin-top: 25px; padding: 20px; border: 2px solid var(--main); display: none; }
-        .action-btn { margin-top: 20px; width: 100%; padding: 18px; background: var(--main); color: #fff; border: none; cursor: pointer; font-size: 1.1rem; }
-        .footer-tools { position: fixed; right: 20px; bottom: 60px; z-index: 100; }
-        .reset-link { font-size: 0.7rem; color: #bbb; border: none; background: none; text-decoration: underline; cursor: pointer; }
-        .badge { font-size: 0.7rem; background: #eee; padding: 2px 6px; border-radius: 10px; margin-left: 5px; }
+        /* ご提示のデザインをベースに調整 */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0; padding: 0.5rem; background: #f9f9f9; color: #333; font-size: 18px; line-height: 1.6;
+        }
+        .container { max-width: 600px; margin: 0 auto; padding-bottom: 100px; }
+        h1 { text-align: center; font-size: 1.8rem; margin: 0.5rem 0 1rem; cursor: pointer; }
+        .tag-btn, .action-btn {
+            display: block; width: 100%; padding: 1rem; margin: 0.5rem 0;
+            border: 1px solid #ccc; border-radius: 6px; font-size: 1.1rem;
+            background: #fff; text-align: center; cursor: pointer;
+        }
+        .tag-btn:active { background: #f0f0f0; }
+        .meta { font-size: 0.8rem; color: #888; text-align: center; margin-bottom: 0.5rem; }
+        #question, #v-name { margin: 0.8rem 0; font-size: 1.2rem; font-weight: bold; line-height: 1.6; text-align: center; }
+        .options-list { list-style: none; padding: 0; margin: 0; }
+        .options-list li { margin-bottom: 0.6rem; }
+        .options-list button {
+            width: 100%; padding: 1.1rem; font-size: 1.1rem; border: 1px solid #ccc;
+            border-radius: 6px; background: #fff; text-align: left; cursor: pointer;
+        }
+        .options-list button:disabled { opacity: 0.7; }
+        
+        /* オーバーレイ・モーダル */
+        #overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); display: none;
+            z-index: 100; align-items: center; justify-content: center;
+        }
+        #modal {
+            background: #fff; padding: 1.5rem; border-radius: 8px;
+            width: 85%; max-width: 400px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        #modal-explanation {
+            font-size: 0.95rem; color: #333; margin-top: 1rem;
+            border-top: 1px solid #eee; padding-top: 1rem;
+        }
+        #modalNextBtn {
+            display: block; width: 100%; padding: 1rem; margin-top: 1.5rem;
+            border: none; border-radius: 6px; font-size: 1.1rem;
+            background: #0078d7; color: #fff; cursor: pointer;
+        }
+
+        /* フッターツール（右下リセット） */
+        .footer-tools { position: fixed; right: 20px; bottom: 60px; z-index: 50; }
+        .reset-link { font-size: 0.75rem; color: #ccc; border: none; background: none; text-decoration: underline; cursor: pointer; }
+        
+        .screen { display: none; }
+        .active { display: block; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <header>
-        <h1 onclick="location.reload()">ITパスポート</h1>
-        <div style="font-size:0.9rem;">習得: <span id="master-count">0</span></div>
-    </header>
+    <h1 id="mainTitle" onclick="location.reload()">ITパスポート</h1>
 
     <div id="home" class="screen active">
-        <div class="menu">
-            <button class="btn" onclick="startQuiz('ストラテジ')">ストラテジ系</button>
-            <button class="btn" onclick="startQuiz('マネジメント')">マネジメント系</button>
-            <button class="btn" onclick="startQuiz('テクノロジ')">テクノロジ系</button>
-            <button class="btn" onclick="startQuiz('ALL')">全分野ランダム</button>
-            <button class="btn" style="border-style:dashed; margin-top:20px;" onclick="startVocabMode()">📚 単語帳モード</button>
+        <div id="controls">
+            <button class="tag-btn" onclick="startQuiz('ストラテジ')">ストラテジ系</button>
+            <button class="tag-btn" onclick="startQuiz('マネジメント')">マネジメント系</button>
+            <button class="tag-btn" onclick="startQuiz('テクノロジ')">テクノロジ系</button>
+            <button class="tag-btn" onclick="startQuiz('ALL')">全分野ランダム</button>
+            <button class="tag-btn" style="border-style: dashed; margin-top: 1rem;" onclick="startVocabMode()">📚 単語帳モード</button>
         </div>
     </div>
 
     <div id="quiz" class="screen">
-        <div class="meta"><span id="q-cat"></span> | <span id="q-id"></span> <span id="q-count-ui" class="badge"></span></div>
-        <div id="q-text" class="q-text"></div>
-        <div id="options" class="options"></div>
-        <button id="q-still" class="still-btn" onclick="handleStill()">まだ (自信なし：0にリセット)</button>
-        <div id="feedback">
-            <div id="res-msg" style="font-weight:bold; margin-bottom:10px;"></div>
-            <div id="explanation" style="font-size:0.9rem;"></div>
-            <button class="action-btn" onclick="nextStep()">次へ</button>
-        </div>
+        <div class="meta"><span id="q-meta"></span></div>
+        <div id="question"></div>
+        <ul id="options" class="options-list"></ul>
     </div>
 
     <div id="vocab" class="screen">
-        <div class="meta">単語帳モード <span id="v-count-ui" class="badge"></span></div>
-        <div id="v-name" style="font-size: 1.8rem; font-weight:bold; margin: 40px 0 20px; text-align:center;"></div>
-        <div id="v-def" style="display:none; padding: 20px; border: 1px solid #eee; margin-bottom:30px; text-align:center;"></div>
-        <button id="v-show-def" class="action-btn" onclick="showDef()">意味を確認</button>
+        <div class="meta">単語帳モード</div>
+        <div id="v-name"></div>
+        <div id="v-def-box" style="display:none; background:#f0f0f0; padding:1.2rem; border-radius:6px; margin-bottom:1rem; text-align:center; font-size:0.95rem;"></div>
+        <button id="v-show-btn" class="tag-btn" onclick="showVocabDef()">意味を確認</button>
         <div id="v-controls" style="display:none; gap:10px;">
-            <button class="action-btn" style="background:var(--green); flex:1;" onclick="handleVocabResult(true)">覚えた</button>
-            <button class="action-btn" style="background:var(--red); flex:1;" onclick="handleVocabResult(false)">まだ</button>
+            <button class="tag-btn" style="flex:1; background:#e8f5e9; border-color:#2e7d32; color:#2e7d32;" onclick="handleVocabResult(true)">覚えた</button>
+            <button class="tag-btn" style="flex:1; background:#ffebee; border-color:#d32f2f; color:#d32f2f;" onclick="handleVocabResult(false)">まだ</button>
         </div>
+    </div>
+</div>
+
+<div id="overlay">
+    <div id="modal">
+        <div id="modal-message"></div>
+        <div id="modal-explanation"></div>
+        <button id="modalNextBtn">次へ ▶</button>
     </div>
 </div>
 
@@ -73,119 +101,130 @@
 
 <script>
 let allData = { questions: [], terms: {} };
-let quizSet = [];
+let currentSet = [];
 let vocabQueue = [];
 let currentIdx = 0;
-let learningList = new Set(JSON.parse(localStorage.getItem('itp_learning_list')) || []); 
+let mode = 'quiz'; // 'quiz' or 'vocab'
+
+// 永続データ
+let learningList = new Set(JSON.parse(localStorage.getItem('itp_learn_list')) || []);
 let qCounts = JSON.parse(localStorage.getItem('itp_q_counts')) || {};
-let vCounts = JSON.parse(localStorage.getItem('itp_v_counts')) || {}; 
+let vCounts = JSON.parse(localStorage.getItem('itp_v_counts')) || {};
 
 async function init() {
     try {
         const [resQ, resT] = await Promise.all([fetch('questions.json'), fetch('terms.json')]);
         allData.questions = await resQ.json();
         allData.terms = await resT.json();
-        updateMasterCount();
-    } catch (e) { alert("データ読み込み失敗"); }
+    } catch (e) { console.error("Data load failed."); }
 }
 
 function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
+    if(id === 'home') document.getElementById('mainTitle').style.display = 'block';
+    else document.getElementById('mainTitle').style.display = 'none';
 }
 
+// 10問選出ロジック (1-7:count0, 8-9:count1, 10:count2)
 function startQuiz(cat) {
-    quizSet = [];
-    const getQs = (c, count) => allData.questions.filter(q => (c === 'ALL' || q.category === c) && (qCounts[q.id] || 0) === count);
-    const getAllQs = (count) => allData.questions.filter(q => (qCounts[q.id] || 0) === count);
+    mode = 'quiz'; currentSet = []; vocabQueue = [];
+    const filterByCount = (c, n) => allData.questions.filter(q => (c === 'ALL' || q.category === c) && (qCounts[q.id] || 0) === n);
+    const filterAnyByCount = (n) => allData.questions.filter(q => (qCounts[q.id] || 0) === n);
 
-    const fill = (target, needed, count) => {
-        let pool = getQs(cat, count).filter(x => !target.includes(x));
-        if (pool.length < needed) pool = [...pool, ...getAllQs(count).filter(x => !target.includes(x) && !pool.includes(x))];
+    const pick = (target, needed, n) => {
+        let pool = filterByCount(cat, n).filter(x => !target.includes(x));
+        if (pool.length < needed) pool = [...pool, ...filterAnyByCount(n).filter(x => !target.includes(x) && !pool.includes(x))];
         return pool.sort(() => Math.random() - 0.5).slice(0, needed);
     };
 
-    quizSet.push(...fill([], 7, 0));
-    quizSet.push(...fill(quizSet, 2, 1));
-    quizSet.push(...fill(quizSet, 1, 2));
+    currentSet.push(...pick([], 7, 0));
+    currentSet.push(...pick(currentSet, 2, 1));
+    currentSet.push(...pick(currentSet, 1, 2));
 
-    if (quizSet.length < 10) {
-        let others = allData.questions.filter(q => !quizSet.includes(q) && (qCounts[q.id] || 0) < 3).sort(() => Math.random() - 0.5);
-        quizSet.push(...others.slice(0, 10 - quizSet.length));
+    // 10問に満たない場合の補充
+    if (currentSet.length < 10) {
+        let others = allData.questions.filter(q => !currentSet.includes(q) && (qCounts[q.id] || 0) < 3).sort(() => Math.random() - 0.5);
+        currentSet.push(...others.slice(0, 10 - currentSet.length));
     }
 
-    currentIdx = 0;
-    vocabQueue = [];
-    showScreen('quiz');
-    renderQuiz();
+    currentIdx = 0; showScreen('quiz'); renderQuiz();
 }
 
 function renderQuiz() {
-    const q = quizSet[currentIdx];
-    document.getElementById('q-cat').innerText = q.category;
-    document.getElementById('q-id').innerText = q.id;
-    document.getElementById('q-text').innerText = q.question;
-    document.getElementById('q-count-ui').innerText = (qCounts[q.id] || 0) + "回";
-    document.getElementById('feedback').style.display = 'none';
-    const container = document.getElementById('options');
-    container.innerHTML = '';
+    const q = currentSet[currentIdx];
+    document.getElementById('q-meta').innerText = `${q.category} | ${q.id} (${currentIdx + 1}/10)`;
+    document.getElementById('question').innerHTML = q.question;
+    const ul = document.getElementById('options'); ul.innerHTML = '';
     q.options.forEach((opt, i) => {
-        const b = document.createElement('button');
-        b.className = 'opt-btn';
-        b.innerText = opt;
-        b.onclick = () => checkQuiz(i);
-        container.appendChild(b);
+        const li = document.createElement('li');
+        const btn = document.createElement('button');
+        btn.innerText = opt;
+        btn.onclick = () => checkAnswer(i);
+        li.appendChild(btn);
+        ul.appendChild(li);
     });
-    document.getElementById('q-still').style.display = 'block';
 }
 
-function checkQuiz(idx) {
-    const q = quizSet[currentIdx];
+function checkAnswer(idx) {
+    const q = currentSet[currentIdx];
     const isCorrect = (idx === q.answer);
-    handleResult(q, isCorrect);
-}
+    
+    // UI更新 (ボタンの色付け)
+    const btns = document.querySelectorAll('#options button');
+    btns.forEach((b, i) => {
+        b.disabled = true;
+        if(i === q.answer) b.style.background = '#e8f5e9';
+        if(i === idx && !isCorrect) b.style.background = '#ffebee';
+    });
 
-function handleStill() { handleResult(quizSet[currentIdx], false); }
-
-function handleResult(q, isCorrect) {
-    const msg = document.getElementById('res-msg');
+    // ロジック適用
     if (isCorrect) {
-        msg.innerText = "⭕ 正解";
-        msg.style.color = "var(--green)";
         qCounts[q.id] = (qCounts[q.id] || 0) + 1;
+        showModal(true, "", q.explanation);
     } else {
-        msg.innerText = "❌ リセット";
-        msg.style.color = "var(--red)";
         qCounts[q.id] = 0;
-        q.term_ids.forEach(tid => { 
-            vCounts[tid] = 0; 
-            learningList.add(tid); 
+        q.term_ids.forEach(tid => {
+            vCounts[tid] = 0; // 追加時にリセット
+            learningList.add(tid);
             if(!vocabQueue.includes(tid)) vocabQueue.push(tid);
         });
+        showModal(false, q.options[q.answer], q.explanation);
     }
-    document.getElementById('explanation').innerText = q.explanation;
-    document.getElementById('feedback').style.display = 'block';
-    document.getElementById('q-still').style.display = 'none';
-    document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
     save();
 }
 
-function nextStep() {
+function showModal(isCorrect, correctText, explanation) {
+    const msg = document.getElementById('modal-message');
+    if (isCorrect) {
+        msg.innerHTML = '<span style="color:#2e7d32; font-weight:bold;">🟢 正解！</span>';
+    } else {
+        msg.innerHTML = `<span style="color:#d32f2f; font-weight:bold;">❌ 不正解</span><br><span style="font-size:0.9rem; color:#666;">正解: ${correctText}</span>`;
+    }
+    document.getElementById('modal-explanation').innerText = "解説: " + explanation;
+    document.getElementById('overlay').style.display = 'flex';
+}
+
+document.getElementById('modalNextBtn').onclick = () => {
+    document.getElementById('overlay').style.display = 'none';
     currentIdx++;
-    if (currentIdx < 10 && currentIdx < quizSet.length) {
+    if (currentIdx < currentSet.length) {
         renderQuiz();
     } else {
+        // クイズ終了後、間違えたキーワードがあればドリルへ
         if (vocabQueue.length > 0) startVocabSession(vocabQueue);
         else location.reload();
     }
-}
+};
 
+// 単語帳モード
 function startVocabMode() {
     let list = Array.from(learningList);
     if (list.length === 0) return alert("覚えるリストは空です。");
+    
     vocabQueue = [];
-    const getTs = (c) => list.filter(tid => (vCounts[tid] || 0) === c);
-    const fillV = (target, needed, c) => getTs(c).filter(x => !target.includes(x)).sort(() => Math.random() - 0.5).slice(0, needed);
+    const getTs = (n) => list.filter(tid => (vCounts[tid] || 0) === n);
+    const fillV = (target, needed, n) => getTs(n).filter(x => !target.includes(x)).sort(() => Math.random() - 0.5).slice(0, needed);
 
     vocabQueue.push(...fillV([], 7, 0));
     vocabQueue.push(...fillV(vocabQueue, 2, 1));
@@ -199,24 +238,22 @@ function startVocabMode() {
 }
 
 function startVocabSession(q) {
-    vocabQueue = q; currentIdx = 0;
+    mode = 'vocab'; vocabQueue = q; currentIdx = 0;
     showScreen('vocab'); renderVocab();
 }
 
 function renderVocab() {
     const tid = vocabQueue[currentIdx];
-    const t = allData.terms[tid];
-    document.getElementById('v-name').innerText = t.name;
-    document.getElementById('v-def').innerText = t.def;
-    document.getElementById('v-def').style.display = 'none';
-    document.getElementById('v-show-def').style.display = 'block';
+    document.getElementById('v-name').innerText = allData.terms[tid].name;
+    document.getElementById('v-def-box').innerText = allData.terms[tid].def;
+    document.getElementById('v-def-box').style.display = 'none';
+    document.getElementById('v-show-btn').style.display = 'block';
     document.getElementById('v-controls').style.display = 'none';
-    document.getElementById('v-count-ui').innerText = (vCounts[tid] || 0) + "回";
 }
 
-function showDef() {
-    document.getElementById('v-def').style.display = 'block';
-    document.getElementById('v-show-def').style.display = 'none';
+function showVocabDef() {
+    document.getElementById('v-def-box').style.display = 'block';
+    document.getElementById('v-show-btn').style.display = 'none';
     document.getElementById('v-controls').style.display = 'flex';
 }
 
@@ -227,29 +264,21 @@ function handleVocabResult(known) {
         if (vCounts[tid] >= 3) learningList.delete(tid);
         currentIdx++;
     } else {
-        vCounts[tid] = 0;
         const moved = vocabQueue.splice(currentIdx, 1)[0];
-        vocabQueue.push(moved);
+        vocabQueue.push(moved); // リセットせず最後尾へ
     }
     save();
     if (currentIdx < vocabQueue.length) renderVocab();
-    else { alert("セッション終了"); location.reload(); }
+    else { alert("セッション完了"); location.reload(); }
 }
 
 function save() {
-    localStorage.setItem('itp_learning_list', JSON.stringify(Array.from(learningList)));
+    localStorage.setItem('itp_learn_list', JSON.stringify(Array.from(learningList)));
     localStorage.setItem('itp_q_counts', JSON.stringify(qCounts));
     localStorage.setItem('itp_v_counts', JSON.stringify(vCounts));
-    updateMasterCount();
 }
 
-function updateMasterCount() {
-    let count = Object.keys(allData.terms).filter(tid => !learningList.has(tid) && vCounts[tid] >= 0).length;
-    // ※ 簡略化のため、一度でも単語帳セッションに出たことのあるものをカウント
-    document.getElementById('master-count').innerText = count;
-}
-
-function fullReset() { if(confirm('初期化しますか？')) { localStorage.clear(); location.reload(); } }
+function fullReset() { if(confirm('全データをリセットしますか？')) { localStorage.clear(); location.reload(); } }
 
 init();
 </script>
