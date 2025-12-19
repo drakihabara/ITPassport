@@ -13,18 +13,18 @@
 
         body, button, .card {
             font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
-            touch-action: manipulation; user-select: none; -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation; /* タップ遅延の解消 */
+            user-select: none; -webkit-tap-highlight-color: transparent;
         }
 
         body { background-color: var(--bg); margin: 0; min-height: 100vh; color: var(--text); overflow-x: hidden; padding-top: env(safe-area-inset-top); }
-
         .container { max-width: 600px; margin: 0 auto; padding: 20px; padding-bottom: 60px; display: flex; flex-direction: column; align-items: center; }
         .screen { display: none; width: 100%; flex-direction: column; align-items: center; }
         .active { display: flex; }
 
         h1 { font-size: 28px; margin: 20px 0 40px; text-align: center; cursor: pointer; }
 
-        button { border: none; cursor: pointer; font-weight: bold; transition: transform 0.1s; }
+        button { border: none; cursor: pointer; font-weight: bold; transition: transform 0.1s; touch-action: manipulation; }
         button:active:not(:disabled) { transform: scale(0.96); }
 
         .main-btn, .list-btn { width: 280px; padding: 18px 0; border-radius: 30px; font-size: 18px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
@@ -64,10 +64,10 @@
     <h1 id="main-title" onclick="location.reload()">ITパスポート</h1>
 
     <div id="screen-home" class="screen active">
-        <button class="main-btn" onclick="startQuiz('ストラテジ')">ストラテジ系</button>
-        <button class="main-btn" onclick="startQuiz('マネジメント')">マネジメント系</button>
-        <button class="main-btn" onclick="startQuiz('テクノロジ')">テクノロジ系</button>
-        <button id="vocab-btn" class="list-btn" style="margin-top:20px;" onclick="startVocabMode()">単語帳モード</button>
+        <button class="main-btn" onpointerdown="startQuiz('ストラテジ')">ストラテジ系</button>
+        <button class="main-btn" onpointerdown="startQuiz('マネジメント')">マネジメント系</button>
+        <button class="main-btn" onpointerdown="startQuiz('テクノロジ')">テクノロジ系</button>
+        <button id="vocab-btn" class="list-btn" style="margin-top:20px;" onpointerdown="startVocabMode()">単語帳モード</button>
         <div class="reset-link" onclick="resetAllData()">学習データをリセット</div>
     </div>
 
@@ -87,8 +87,8 @@
             </div>
         </div>
         <div class="controls" id="v-controls">
-            <button class="action-btn btn-check" onclick="handleVocabResult(false)">まだ...</button>
-            <button class="action-btn btn-master" onclick="handleVocabResult(true)">覚えた！</button>
+            <button class="action-btn btn-check" onpointerdown="handleVocabResult(false)">まだ...</button>
+            <button class="action-btn btn-master" onpointerdown="handleVocabResult(true)">覚えた！</button>
         </div>
     </div>
 </div>
@@ -164,7 +164,7 @@
             const li = document.createElement('li');
             const b = document.createElement('button');
             b.innerText = opt;
-            b.onclick = () => checkQuiz(i);
+            b.onpointerdown = () => checkQuiz(i);
             li.appendChild(b); ul.appendChild(li);
         });
     }
@@ -195,7 +195,7 @@
         document.getElementById('overlay').style.display = 'flex';
     }
 
-    document.getElementById('modalNextBtn').onclick = () => {
+    document.getElementById('modalNextBtn').onpointerdown = () => {
         document.getElementById('overlay').style.display = 'none';
         if (++currentIdx < sessionQueue.length) { renderQuiz(); }
         else {
@@ -224,14 +224,21 @@
         const tid = vocabQueue[currentIdx];
         const t = allData.terms[tid];
         isAnswerShown = false;
-        document.getElementById('v-name').innerText = t.name;
-        document.getElementById('v-def').innerText = t.def;
+
+        // 空データのバリデーション
+        if (!t) {
+            document.getElementById('v-name').innerText = "データ未登録";
+            document.getElementById('v-def').innerText = `ID: ${tid} が terms.json にありません。`;
+        } else {
+            document.getElementById('v-name').innerText = t.name || "名称なし";
+            document.getElementById('v-def').innerText = t.def || "定義なし";
+        }
+
         document.getElementById('v-def').classList.remove('show');
         document.getElementById('v-hint').style.display = 'block';
-        // ボタンは隠さない設定に変更
     }
 
-    document.getElementById('card-face').onclick = () => {
+    document.getElementById('card-face').onpointerdown = () => {
         if (!isAnswerShown) {
             isAnswerShown = true;
             document.getElementById('v-hint').style.display = 'none';
