@@ -16,10 +16,7 @@
             touch-action: manipulation; user-select: none; -webkit-tap-highlight-color: transparent;
         }
 
-        body { 
-            background-color: var(--bg); margin: 0; min-height: 100vh; color: var(--text); overflow-x: hidden; 
-            padding-top: env(safe-area-inset-top); /* ノッチ対策 */
-        }
+        body { background-color: var(--bg); margin: 0; min-height: 100vh; color: var(--text); overflow-x: hidden; padding-top: env(safe-area-inset-top); }
 
         .container { max-width: 600px; margin: 0 auto; padding: 20px; padding-bottom: 60px; display: flex; flex-direction: column; align-items: center; }
         .screen { display: none; width: 100%; flex-direction: column; align-items: center; }
@@ -145,16 +142,13 @@
     function startQuiz(cat) {
         sessionQueue = []; vocabQueue = [];
         const filter = (n) => allData.questions.filter(q => q.category === cat && (qCounts[q.id] || 0) === n);
-        
         const pick = (target, needed, n) => {
             let pool = filter(n).filter(x => !target.includes(x));
             return pool.sort(() => Math.random() - 0.5).slice(0, needed);
         };
-
         sessionQueue.push(...pick([], 7, 0));
         sessionQueue.push(...pick(sessionQueue, 2, 1));
         sessionQueue.push(...pick(sessionQueue, 1, 2));
-
         if (sessionQueue.length < 10) {
             let others = allData.questions.filter(q => q.category === cat && !sessionQueue.includes(q) && (qCounts[q.id] || 0) < 3).sort(() => Math.random() - 0.5);
             sessionQueue.push(...others.slice(0, 10 - sessionQueue.length));
@@ -178,18 +172,15 @@
     function checkQuiz(idx) {
         const q = sessionQueue[currentIdx];
         const isCorrect = (idx === q.answer);
-        const tIds = q.term_ids || []; // null安全
+        const tIds = q.term_ids || [];
         if (isCorrect) {
             qCounts[q.id] = (qCounts[q.id] || 0) + 1;
-            if (qCounts[q.id] >= 3) {
-                tIds.forEach(tid => learningList.delete(tid));
-            }
+            if (qCounts[q.id] >= 3) { tIds.forEach(tid => learningList.delete(tid)); }
             showModal(true, "", q.explanation);
         } else {
             qCounts[q.id] = 0;
             tIds.forEach(tid => {
-                vCounts[tid] = 0;
-                learningList.add(tid);
+                vCounts[tid] = 0; learningList.add(tid);
                 if (!vocabQueue.includes(tid)) vocabQueue.push(tid);
             });
             showModal(false, q.options[q.answer], q.explanation);
@@ -206,9 +197,8 @@
 
     document.getElementById('modalNextBtn').onclick = () => {
         document.getElementById('overlay').style.display = 'none';
-        if (++currentIdx < sessionQueue.length) {
-            renderQuiz();
-        } else {
+        if (++currentIdx < sessionQueue.length) { renderQuiz(); }
+        else {
             if (vocabQueue.length > 0) {
                 currentIdx = 0; isReviewMode = true;
                 changeScreen('screen-vocab'); renderVocab();
@@ -238,7 +228,7 @@
         document.getElementById('v-def').innerText = t.def;
         document.getElementById('v-def').classList.remove('show');
         document.getElementById('v-hint').style.display = 'block';
-        document.getElementById('v-controls').style.display = 'none';
+        // ボタンは隠さない設定に変更
     }
 
     document.getElementById('card-face').onclick = () => {
@@ -246,7 +236,6 @@
             isAnswerShown = true;
             document.getElementById('v-hint').style.display = 'none';
             document.getElementById('v-def').classList.add('show');
-            document.getElementById('v-controls').style.display = 'flex';
         }
     };
 
