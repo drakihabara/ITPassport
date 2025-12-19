@@ -42,9 +42,9 @@
         #quiz-question { margin: 1rem 0; font-size: 1.25rem; font-weight: bold; line-height: 1.6; text-align: left; width: 100%; }
         .options-list { list-style: none; padding: 0; margin: 0; width: 100%; }
         .options-list li { margin-bottom: 12px; }
-        .options-list button { width: 100%; padding: 1.1rem; font-size: 1.1rem; border: 1px solid var(--border); border-radius: 12px; background: #fff; text-align: left; }
+        .options-list button { width: 100%; padding: 1.1rem; font-size: 1.1rem; border: 1px solid var(--border); border-radius: 12px; background: #fff; text-align: left; line-height: 1.4; }
 
-        /* 単語帳カード */
+        /* カードUI（単語帳ドリル） */
         #card-container { position: relative; width: 310px; height: 380px; margin-bottom: 30px; }
         .card { 
             width: 100%; height: 100%; background: white; border-radius: 25px; 
@@ -54,7 +54,7 @@
         }
         .v-name { font-size: 34px; font-weight: bold; color: var(--main); margin-bottom: 15px; width: 100%; }
         .ja-area { min-height: 80px; display: flex; align-items: center; justify-content: center; width: 100%; text-align: center; }
-        .v-def { font-size: 22px; font-weight: bold; color: var(--red); opacity: 0; transition: opacity 0.2s; pointer-events: none; }
+        .v-def { font-size: 22px; font-weight: bold; color: var(--red); opacity: 0; transition: opacity 0.2s; pointer-events: none; line-height: 1.4; }
         .v-def.show { opacity: 1; }
         .hint-text { font-size: 15px; color: #ccc; width: 100%; text-align: center; }
 
@@ -70,19 +70,18 @@
             backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
             display: none; z-index: 100; align-items: center; justify-content: center;
         }
-        #modal { background: #fff; padding: 1.8rem; border-radius: 20px; width: 90%; max-width: 420px; border: 1px solid #eee; }
+        #modal { background: #fff; padding: 1.8rem; border-radius: 20px; width: 90%; max-width: 420px; border: 1px solid #eee; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         #modal-message { text-align: center; margin-bottom: 10px; }
-        #modal-explanation { font-size: 1rem; color: #444; margin-top: 1.2rem; border-top: 1.5px solid #f0f0f0; padding-top: 1.2rem; }
+        #modal-explanation { font-size: 1rem; color: #444; margin-top: 1.2rem; border-top: 1.5px solid #f0f0f0; padding-top: 1.2rem; line-height: 1.6; }
         #modalNextBtn { width: 100%; padding: 1.1rem; margin-top: 1.8rem; border-radius: 30px; background: var(--main); color: #fff; font-size: 1.1rem; }
 
-        /* リスト表示 */
-        #mastered-list { width: 100%; background: white; border-radius: 20px; padding: 10px; margin-top: 10px; }
-        .list-item { border-bottom: 1px solid #eee; padding: 15px 10px; display: flex; justify-content: space-between; align-items: center; }
-        .list-en { font-weight: bold; font-size: 18px; color: var(--main); }
-        .list-ja { font-size: 14px; color: #888; text-align: right; max-width: 60%; }
-        .list-section { width: 100%; margin-top: 20px; font-size: 0.9rem; color: #666; font-weight: bold; padding-left: 10px; }
-
-        /* タイトル画面専用のリセットリンク */
+        /* リスト画面 */
+        #word-list-container { width: 100%; background: white; border-radius: 20px; padding: 10px; margin-top: 10px; }
+        .list-item { border-bottom: 1px solid #eee; padding: 18px 10px; display: flex; justify-content: space-between; align-items: center; }
+        .list-item:last-child { border-bottom: none; }
+        .list-name { font-weight: bold; font-size: 18px; color: var(--main); }
+        .list-count { font-size: 12px; color: #aaa; }
+        
         .reset-link { margin-top: 40px; font-size: 12px; color: #bbb; text-decoration: underline; cursor: pointer; }
     </style>
 </head>
@@ -96,7 +95,7 @@
         <button class="main-btn" onclick="startQuiz('マネジメント')">マネジメント系</button>
         <button class="main-btn" onclick="startQuiz('テクノロジ')">テクノロジ系</button>
         <button class="main-btn" onclick="startQuiz('ALL')">全分野ランダム</button>
-        <button class="list-btn" style="margin-top:20px;" onclick="showMasteredList()">単語帳（リスト）</button>
+        <button class="list-btn" style="margin-top:20px;" onclick="showWordList()">単語帳モード</button>
         
         <div class="reset-link" onclick="resetAllData()">学習データをリセット</div>
     </div>
@@ -108,7 +107,7 @@
     </div>
 
     <div id="screen-vocab" class="screen">
-        <div class="meta">学習セッション</div>
+        <div class="meta">単語帳ドリル</div>
         <div id="card-container">
             <div class="card" id="card-face">
                 <div class="v-name" id="v-name"></div>
@@ -125,12 +124,12 @@
     </div>
 
     <div id="screen-list" class="screen">
-        <div style="width:100%; display:flex; justify-content:space-between; align-items:center; padding:10px;">
-            <h2 style="margin:0; font-size: 22px;">単語帳</h2>
-            <div id="master-count" style="font-weight:bold; color:var(--main);">0語</div>
+        <div style="width:100%; padding:10px;">
+            <h2 style="margin:0; font-size: 22px; text-align: center;">学習中の単語</h2>
+            <p style="font-size: 12px; color: #888; text-align: center; margin-top: 5px;">クイズで間違えた用語を復習します</p>
         </div>
-        <button class="main-btn" style="margin: 10px 0;" onclick="startVocabMode()">学習を開始する</button>
-        <div id="mastered-list"></div>
+        <button class="main-btn" style="margin: 10px 0;" onclick="startVocabMode()">ドリルを開始する</button>
+        <div id="word-list-container"></div>
         <button class="list-btn" style="margin-top:30px;" onclick="location.reload()">タイトルへ</button>
     </div>
 </div>
@@ -150,10 +149,9 @@
     let currentIdx = 0;
     let isAnswerShown = false;
 
-    // 永続化キーはv3で固定
-    const KEY_LEARN = 'itp_learn_v3';
-    const KEY_QCNT = 'itp_q_cnt_v3';
-    const KEY_VCNT = 'itp_v_cnt_v3';
+    const KEY_LEARN = 'itp_learn_v5';
+    const KEY_QCNT = 'itp_q_cnt_v5';
+    const KEY_VCNT = 'itp_v_cnt_v5';
 
     let learningList = new Set(JSON.parse(localStorage.getItem(KEY_LEARN)) || []);
     let qCounts = JSON.parse(localStorage.getItem(KEY_QCNT)) || {}; 
@@ -166,7 +164,7 @@
             const [resQ, resT] = await Promise.all([fetch('questions.json'), fetch('terms.json')]);
             allData.questions = await resQ.json();
             allData.terms = await resT.json();
-        } catch (e) { console.error("JSONの読み込みに失敗しました。"); }
+        } catch (e) { console.error("Data Load Error"); }
     }
 
     function changeScreen(id) {
@@ -187,16 +185,13 @@
             }
             return pool.sort(() => Math.random() - 0.5).slice(0, needed);
         };
-
         sessionQueue.push(...pick([], 7, 0));
         sessionQueue.push(...pick(sessionQueue, 2, 1));
         sessionQueue.push(...pick(sessionQueue, 1, 2));
-
         if (sessionQueue.length < 10) {
             let others = allData.questions.filter(q => !sessionQueue.includes(q) && (qCounts[q.id] || 0) < 3).sort(() => Math.random() - 0.5);
             sessionQueue.push(...others.slice(0, 10 - sessionQueue.length));
         }
-
         currentIdx = 0; changeScreen('screen-quiz'); renderQuiz();
     }
 
@@ -219,6 +214,9 @@
         const isCorrect = (idx === q.answer);
         if (isCorrect) {
             qCounts[q.id] = (qCounts[q.id] || 0) + 1;
+            if (qCounts[q.id] >= 3) {
+                q.term_ids.forEach(tid => learningList.delete(tid));
+            }
             showModal(true, "", q.explanation);
         } else {
             qCounts[q.id] = 0;
@@ -244,35 +242,36 @@
         else location.reload();
     };
 
-    // --- 単語帳 ---
-    function showMasteredList() {
-        const container = document.getElementById('mastered-list');
+    // --- 単語帳（リスト & ドリル） ---
+    function showWordList() {
+        const container = document.getElementById('word-list-container');
         container.innerHTML = '';
-        let masteredCount = 0;
-
-        if (learningList.size > 0) {
-            container.innerHTML += '<div class="list-section">学習中（クイズで間違えた単語）</div>';
+        if (learningList.size === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:40px; color:#ccc;">学習中の単語はありません</div>';
+        } else {
             learningList.forEach(tid => {
                 const t = allData.terms[tid];
-                if(t) container.innerHTML += `<div class="list-item"><div class="list-en">${t.name}</div><div class="list-ja">クリア: ${vCounts[tid]||0}回</div></div>`;
+                if(t) {
+                    container.innerHTML += `<div class="list-item"><div class="list-name">${t.name}</div><div class="list-count">現在: ${vCounts[tid]||0}回</div></div>`;
+                }
             });
         }
-
-        container.innerHTML += '<div class="list-section">習得済み（3回連続正解）</div>';
-        Object.keys(allData.terms).forEach(tid => {
-            if (!learningList.has(tid) && vCounts[tid] >= 3) {
-                masteredCount++;
-                container.innerHTML += `<div class="list-item"><div class="list-en">${allData.terms[tid].name}</div><div class="list-ja">${allData.terms[tid].def}</div></div>`;
-            }
-        });
-        document.getElementById('master-count').innerText = masteredCount + "語";
         changeScreen('screen-list');
     }
 
     function startVocabMode() {
         const list = Array.from(learningList);
-        if (list.length === 0) return alert("学習中の単語はありません。クイズを解いてみましょう。");
-        vocabQueue = list.sort(() => Math.random() - 0.5).slice(0, 10);
+        if (list.length === 0) return alert("学習中の単語がありません。");
+        
+        vocabQueue = [];
+        const pickV = (needed, n) => list.filter(tid => (vCounts[tid] || 0) === n).sort(() => Math.random() - 0.5).slice(0, needed);
+        vocabQueue.push(...pickV(7, 0));
+        vocabQueue.push(...pickV(2, 1));
+        vocabQueue.push(...pickV(1, 2));
+
+        if (vocabQueue.length < 10 && list.length > vocabQueue.length) {
+            vocabQueue.push(...list.filter(t => !vocabQueue.includes(t)).sort(() => Math.random() - 0.5).slice(0, 10 - vocabQueue.length));
+        }
         currentIdx = 0; changeScreen('screen-vocab'); renderVocab();
     }
 
@@ -317,12 +316,7 @@
         localStorage.setItem(KEY_VCNT, JSON.stringify(vCounts));
     }
 
-    function resetAllData() {
-        if(confirm("全ての学習記録と進捗を削除しますか？")) {
-            localStorage.clear();
-            location.reload();
-        }
-    }
+    function resetAllData() { if(confirm("学習記録をリセットしますか？")) { localStorage.clear(); location.reload(); } }
 </script>
 </body>
 </html>
