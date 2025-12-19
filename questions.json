@@ -1,0 +1,38 @@
+[
+  {
+    "category": "マネジメント",
+    "id": "MG-001",
+    "question": "サービス提供時間帯のうち, 実際にサービスを利用できた時間の割合は？",
+    "options": ["可用性", "機能性", "効率性", "使用性"],
+    "answer": 0,
+    "explanation": "可用性は、システムが継続して稼働し利用できる度合いです。",
+    "keywords": ["可用性", "SLA"]
+  },
+  {
+    "category": "マネジメント",
+    "id": "MG-004",
+    "question": "機能を小単位に分割し, 短期間のサイクルを繰り返す迅速な開発手法は？",
+    "options": ["アジャイル", "ウォーターフォール", "スパイラル", "プロトタイピング"],
+    "answer": 0,
+    "explanation": "アジャイル開発は、変化に迅速に対応するための手法です。",
+    "keywords": ["アジャイル"]
+  },
+  {
+    "category": "ストラテジ",
+    "id": "ST-004",
+    "question": "経営資源を経済価値, 希少性, 模倣困難性, 組織で評価する手法は？",
+    "options": ["SWOT分析", "PPM分析", "4P分析", "VRIO分析"],
+    "answer": 3,
+    "explanation": "自社の競争優位を分析するフレームワークです。",
+    "keywords": ["VRIO分析"]
+  },
+  {
+    "category": "テクノロジ",
+    "id": "TC-001",
+    "question": "Bluetoothの仕様の一つで、省電力性に優れたIoT向け規格は？",
+    "options": ["BLE", "NFC", "IrDA", "PLC"],
+    "answer": 0,
+    "explanation": "Bluetooth Low Energyの略称です。",
+    "keywords": ["BLE", "IoT"]
+  }
+]
