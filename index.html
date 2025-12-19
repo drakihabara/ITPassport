@@ -13,6 +13,7 @@
             --green: #2ecc71;
             --text: #333;
             --border: #ccc;
+            --disabled: #bdc3c7;
         }
 
         body, button, .card {
@@ -31,11 +32,15 @@
         h1 { font-size: 28px; margin: 20px 0 40px; text-align: center; cursor: pointer; }
 
         button { border: none; cursor: pointer; font-weight: bold; transition: transform 0.1s; }
-        button:active { transform: scale(0.96); }
+        button:active:not(:disabled) { transform: scale(0.96); }
 
         .main-btn, .list-btn { width: 280px; padding: 18px 0; border-radius: 30px; font-size: 18px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .main-btn { background: var(--main); color: white; }
+        
+        /* 単語帳ボタン（有効時） */
         .list-btn { background: white; color: var(--main); border: 2px solid var(--main); }
+        /* 単語帳ボタン（無効時） */
+        .list-btn:disabled { background: #eee; color: #aaa; border-color: #ccc; cursor: default; box-shadow: none; }
 
         /* --- クイズ画面 --- */
         #quiz-question { margin: 2rem 0 1.5rem; font-size: 1.25rem; font-weight: bold; line-height: 1.6; text-align: left; width: 100%; }
@@ -54,17 +59,17 @@
         .v-name { font-size: 36px; font-weight: bold; color: var(--main); width: 100%; line-height: 1.2; margin-bottom: 20px; }
         .ja-area { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; position: relative; }
         
-        /* 中央揃えの修正 */
         .v-def { font-size: 24px; font-weight: bold; color: var(--red); opacity: 0; transition: opacity 0.2s; pointer-events: none; line-height: 1.4; position: absolute; width: 100%; }
         .v-def.show { opacity: 1; }
-        .hint-text { font-size: 16px; color: #ccc; width: 100%; position: absolute; }
+        /* 文字の中央配置を保証 */
+        .hint-text { font-size: 16px; color: #ccc; width: 100%; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
 
         .controls { width: 100%; max-width: 320px; display: flex; gap: 15px; }
         .action-btn { flex: 1; height: 65px; border-radius: 35px; font-size: 17px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .btn-check { background-color: #ffe0b2; color: #d35400; }
         .btn-master { background-color: #c8e6c9; color: #27ae60; }
 
-        /* --- 解説モーダル（目に優しい） --- */
+        /* --- 解説モーダル --- */
         #overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(240, 242, 245, 0.85); 
@@ -89,7 +94,7 @@
         <button class="main-btn" onclick="startQuiz('マネジメント')">マネジメント系</button>
         <button class="main-btn" onclick="startQuiz('テクノロジ')">テクノロジ系</button>
         <button class="main-btn" onclick="startQuiz('ALL')">全分野ランダム</button>
-        <button class="list-btn" style="margin-top:20px;" onclick="startVocabMode()">単語帳モード</button>
+        <button id="vocab-btn" class="list-btn" style="margin-top:20px;" onclick="startVocabMode()">単語帳モード</button>
         <div class="reset-link" onclick="resetAllData()">学習データをリセット</div>
     </div>
 
@@ -129,11 +134,11 @@
     let vocabQueue = [];
     let currentIdx = 0;
     let isAnswerShown = false;
+    let isReviewMode = false; // クイズ直後の復習ドリルかどうか
 
-    // ストレージキー
-    const KEY_LEARN = 'itp_v10_learn';
-    const KEY_QCNT  = 'itp_v10_qcnt';
-    const KEY_VCNT  = 'itp_v10_vcnt';
+    const KEY_LEARN = 'itp_v11_learn';
+    const KEY_QCNT  = 'itp_v11_qcnt';
+    const KEY_VCNT  = 'itp_v11_vcnt';
 
     let learningList = new Set(JSON.parse(localStorage.getItem(KEY_LEARN)) || []);
     let qCounts = JSON.parse(localStorage.getItem(KEY_QCNT)) || {}; 
@@ -146,6 +151,7 @@
             const [resQ, resT] = await Promise.all([fetch('questions.json'), fetch('terms.json')]);
             allData.questions = await resQ.json();
             allData.terms = await resT.json();
+            updateVocabButtonState();
         } catch (e) { console.error("Data Load Error"); }
     }
 
@@ -153,6 +159,12 @@
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         document.getElementById('main-title').style.display = (id === 'screen-home') ? 'block' : 'none';
+    }
+
+    // 単語帳ボタンの無効化処理
+    function updateVocabButtonState() {
+        const btn = document.getElementById('vocab-btn');
+        btn.disabled = (learningList.size === 0);
     }
 
     // --- クイズロジック ---
@@ -224,6 +236,7 @@
         } else {
             if (vocabQueue.length > 0) {
                 currentIdx = 0;
+                isReviewMode = true; // 復習モード開始
                 changeScreen('screen-vocab');
                 renderVocab();
             } else {
@@ -235,8 +248,9 @@
     // --- 単語帳ドリル ---
     function startVocabMode() {
         const list = Array.from(learningList);
-        if (list.length === 0) return alert("学習中の単語はありません。クイズで間違えるとここに追加されます。");
+        if (list.length === 0) return; // ボタン無効化されているため通常は通らない
         
+        isReviewMode = false; // 通常の学習モード
         vocabQueue = [];
         const pickV = (needed, n) => list.filter(tid => (vCounts[tid] || 0) === n).sort(() => Math.random() - 0.5).slice(0, needed);
         vocabQueue.push(...pickV(7, 0));
@@ -273,8 +287,11 @@
         const tid = vocabQueue[currentIdx];
         if (isMastered) {
             triggerHaptic(true);
-            vCounts[tid] = (vCounts[tid] || 0) + 1;
-            if (vCounts[tid] >= 3) learningList.delete(tid);
+            // 【修正】クイズ直後の復習モード（isReviewMode=true）ではカウントを増やさない
+            if (!isReviewMode) {
+                vCounts[tid] = (vCounts[tid] || 0) + 1;
+                if (vCounts[tid] >= 3) learningList.delete(tid);
+            }
             currentIdx++;
         } else {
             triggerHaptic(false);
@@ -290,6 +307,7 @@
         localStorage.setItem(KEY_LEARN, JSON.stringify(Array.from(learningList)));
         localStorage.setItem(KEY_QCNT, JSON.stringify(qCounts));
         localStorage.setItem(KEY_VCNT, JSON.stringify(vCounts));
+        updateVocabButtonState();
     }
 
     function triggerHaptic(good) {
