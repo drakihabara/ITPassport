@@ -1,330 +1,166 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>ITパスポート試験対策</title> <style>
-    /* スタイルは変更なし */
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      margin: 0;
-      padding: 0.5rem;
-      background: #f9f9f9;
-      color: #333;
-      font-size: 18px;
-      line-height: 1.6;
-    }
-    h1 {
-      text-align: center;
-      font-size: 1.8rem;
-      margin: 0.5rem 0 1rem;
-    }
-    .tag-btn, #nextBtn {
-      display: block;
-      width: 100%;
-      padding: 1rem;
-      margin: 0.4rem 0;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 1.1rem;
-      background: #fff;
-      text-align: center;
-      cursor: pointer;
-    }
-    .tag-btn:hover {
-      background: #f0f0f0;
-    }
-    #question {
-      margin: 0.8rem 0;
-      font-size: 1.2rem;
-      line-height: 1.6;
-    }
-    #options {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-    #options li {
-      margin-bottom: 0.5rem;
-    }
-    #options button {
-      width: 100%;
-      padding: 1rem;
-      font-size: 1.1rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      background: #fff;
-      text-align: left;
-      cursor: pointer;
-    }
-    #options button:disabled {
-      opacity: 0.7;
-      cursor: default;
-    }
-    #progress {
-      font-size: 0.9rem;
-      text-align: center;
-      margin: 0.8rem 0;
-    }
-    #result h2 {
-      text-align: center;
-      margin-top: 1.5rem;
-    }
-
-    /* オーバーレイ（マスク） */
-    #overlay {
-      position: fixed; /* 画面に固定 */
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5); /* 半透明の黒 */
-      display: none; /* 通常は非表示 */
-      z-index: 10;
-      /* 縦横中央揃え */
-      align-items: center;
-      justify-content: center;
-    }
-
-    /* モーダル（ポップアップ本体） */
-    #modal {
-      background: #fff;
-      padding: 1.5rem;
-      border-radius: 8px;
-      width: 85%; /* スマホ画面の85% */
-      max-width: 400px; /* PCでも広がりすぎないように */
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    #modal-explanation {
-      font-size: 0.95rem;
-      color: #333;
-      margin-top: 1rem;
-      border-top: 1px solid #eee;
-      padding-top: 1rem;
-    }
-    /* モーダル内の「次へ」ボタン */
-    #modalNextBtn {
-      display: block;
-      width: 100%;
-      padding: 1rem;
-      margin-top: 1.5rem;
-      border: none;
-      border-radius: 6px;
-      font-size: 1.1rem;
-      background: #0078d7;
-      color: #fff;
-      cursor: pointer;
-    }
-    #modalNextBtn:hover {
-      background: #005a9e;
-    }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITパスポート 習得支援アシスタント</title>
+    <style>
+        :root { --primary: #2563eb; --bg: #f8fafc; --text: #1e293b; }
+        body { font-family: sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        header { border-bottom: 2px solid #e2e8f0; margin-bottom: 20px; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .tag { font-size: 0.8rem; background: #e2e8f0; padding: 2px 8px; border-radius: 4px; font-weight: bold; }
+        #question-text { font-size: 1.2rem; font-weight: bold; margin: 20px 0; min-height: 80px; }
+        .options { display: grid; gap: 10px; margin-top: 20px; }
+        button.opt-btn { text-align: left; padding: 15px; border: 1px solid #cbd5e1; border-radius: 8px; background: white; cursor: pointer; transition: 0.2s; font-size: 1rem; }
+        button.opt-btn:hover { background: #f1f5f9; border-color: var(--primary); }
+        #feedback { margin-top: 20px; padding: 20px; border-radius: 8px; display: none; }
+        .correct { background: #dcfce7; border: 1px solid #22c55e; }
+        .incorrect { background: #fee2e2; border: 1px solid #ef4444; }
+        #explanation { margin-top: 10px; font-size: 0.95rem; }
+        #next-btn { margin-top: 20px; background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        #vocab-section { margin-top: 40px; padding-top: 20px; border-top: 2px solid #e2e8f0; }
+        .badge { display: inline-block; background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 9999px; font-size: 0.85rem; margin: 4px; font-weight: 500; }
+    </style>
 </head>
 <body>
 
-  <h1 id="mainTitle">ITパスポート試験対策</h1> <div id="controls">
-      <button class="tag-btn" data-tag="strategy">ストラテジ系</button>
-      <button class="tag-btn" data-tag="management">マネジメント系</button>
-      <button class="tag-btn" data-tag="technology">テクノロジ系</button>
-  </div>
+<div class="container">
+    <header>
+        <div>
+            <span id="category-tag" class="tag">分野</span>
+            <span id="q-id" style="margin-left:10px; color:#64748b;">ID</span>
+        </div>
+        <div id="stats">習得単語数: <span id="learned-count">0</span></div>
+    </header>
 
-  <div id="quiz" style="display:none;">
-    <div id="question"></div>
-    <ul id="options"></ul>
-    <div id="progress"></div>
-  </div>
-
-  <div id="result" style="display:none;"></div>
-
-
-  <div id="overlay">
-    <div id="modal">
-      <div id="modal-message"></div>
-      <div id="modal-explanation"></div>
-      <button id="modalNextBtn">次へ ▶</button>
+    <div id="quiz-area">
+        <div id="question-text">読み込み中...</div>
+        <div id="options-container" class="options"></div>
+        
+        <div id="feedback">
+            <div id="result-msg" style="font-weight:bold; font-size:1.1rem;"></div>
+            <div id="explanation"></div>
+            <button id="next-btn">次の問題へ</button>
+        </div>
     </div>
-  </div>
+
+    <div id="vocab-section">
+        <h3>習得済みキーワード</h3>
+        <div id="learned-keywords"></div>
+    </div>
+</div>
 
 <script>
-  /* JavaScript部分は変更なし（後でcsvFileName関数は修正が必要です） */
-  let questions=[],current=0,score=0;
+// 動作確認用：マネジメント・ストラテジ・テクノロジ各10問（計30問）
+const quizData = [
+    // マネジメント
+    {"category":"マネジメント","id":"MG-001","question":"サービス提供時間帯のうち, 実際にサービスを利用できた時間の割合は？","options":["可用性","機能性","効率性","使用性"],"answer":0,"explanation":"可用性は、システムが継続して稼働し利用できる度合いです。","keywords":["可用性","SLA"]},
+    {"category":"マネジメント","id":"MG-004","question":"機能を小単位に分割し, 短期間のサイクルを繰り返す迅速な開発手法は？","options":["アジャイル","ウォーターフォール","スパイラル","プロトタイピング"],"answer":0,"explanation":"アジャイル開発は、変化に迅速に対応するための手法です。","keywords":["アジャイル"]},
+    {"category":"マネジメント","id":"MG-009","question":"開発初期に試作品を作成し, 利用者の要求を確認するモデルは？","options":["スパイラル","プロトタイピング","RAD","アジャイル"],"answer":1,"explanation":"プロトタイプ(試作品)を作って評価を得る手法です。","keywords":["プロトタイピング"]},
+    {"category":"マネジメント","id":"MG-012","question":"ATMのパネル操作など, 人間にとっての使いやすさを指す品質特性は？","options":["保守性","移植性","使用性","信頼性"],"answer":2,"explanation":"使用性(Usability)は、使い勝手の良さを表します。","keywords":["使用性","UI"]},
+    {"category":"マネジメント","id":"MG-030","question":"開発側(Dev)と運用側(Ops)が密接に連携し、迅速に進める取組は？","options":["DevOps","BPR","ERP","SLA"],"answer":0,"explanation":"開発と運用の協力体制をDevOpsと呼びます。","keywords":["DevOps"]},
+    {"category":"マネジメント","id":"MG-034","question":"不具合の原因を発生頻度順に並べ、累積値を折れ線で示した図は？","options":["散布図","管理図","パレート図","特性要因図"],"answer":2,"explanation":"重点項目を特定するためにパレート図を用います。","keywords":["パレート図","QC7つ道具"]},
+    {"category":"マネジメント","id":"MG-064","question":"インシデント管理の主な目的はどれか？","options":["根本原因の解決","変更の管理","資産の把握","サービスの迅速な回復"],"answer":3,"explanation":"インシデント管理は、まず「サービス復旧」を最優先します。","keywords":["インシデント管理"]},
+    {"category":"マネジメント","id":"MG-082","question":"一次サポートで解決できない問題を二次サポートに委ねることは？","options":["エスカレーション","ワークアラウンド","FAQ","SLA"],"answer":0,"explanation":"上位の担当者へ引き継ぐことをエスカレーションと言います。","keywords":["エスカレーション"]},
+    {"category":"マネジメント","id":"MG-083","question":"ITサービスマネジメントのベストプラクティスをまとめた枠組みは？","options":["ISO9001","ITIL","CMMI","PMP"],"answer":1,"explanation":"ITIL(Information Technology Infrastructure Library)です。","keywords":["ITIL"]},
+    {"category":"マネジメント","id":"MG-091","question":"WBSの各作業について、内容や完了基準を詳細に記述した補助文書は？","options":["WBS辞書","ガントチャート","マニュアル","要件定義書"],"answer":0,"explanation":"WBSを補完する詳細定義書をWBS辞書と呼びます。","keywords":["WBS辞書"]},
 
-  // DOMが読み込まれたらイベントリスナーを設定
-  document.addEventListener('DOMContentLoaded', () => {
+    // ストラテジ
+    {"category":"ストラテジ","id":"ST-004","question":"経営資源を経済価値, 希少性, 模倣困難性, 組織で評価する手法は？","options":["SWOT分析","PPM分析","4P分析","VRIO分析"],"answer":3,"explanation":"自社の競争優位を分析するフレームワークです。","keywords":["VRIO分析"]},
+    {"category":"ストラテジ","id":"ST-007","question":"新しい概念やアイディアの実証を目的とした、開発前の検証は？","options":["SLA","RAS","PoC","CRM"],"answer":2,"explanation":"PoC(Proof of Concept：概念実証)です。","keywords":["PoC"]},
+    {"category":"ストラテジ","id":"ST-012","question":"輸送業者などが提供する「役務」を他社と区別するための商標は？","options":["ロゴマーク","サービスマーク","特許","意匠権"],"answer":1,"explanation":"サービス(役務)に付けられる商標をサービスマークと言います。","keywords":["サービスマーク"]},
+    {"category":"ストラテジ","id":"ST-015","question":"一つの企業の中に事業領域ごとに独立した組織を設置する形態は？","options":["職能別組織","マトリックス組織","カンパニー制組織","プロジェクト組織"],"answer":2,"explanation":"独立採算制を導入しやすい組織形態です。","keywords":["カンパニー制"]},
+    {"category":"ストラテジ","id":"ST-021","question":"基本は無料、追加機能を有料で提供するビジネスモデルは？","options":["シェアリング","サブスク","フリーミアム","アフィリエイト"],"answer":2,"explanation":"Free + Premium = フリーミアムです。","keywords":["フリーミアム"]},
+    {"category":"ストラテジ","id":"ST-024","question":"定型的な事務作業をソフトウェアロボットで自動化する技術は？","options":["AI","IoT","RPA","ERP"],"answer":2,"explanation":"Robotic Process Automationの略です。","keywords":["RPA"]},
+    {"category":"ストラテジ","id":"ST-037","question":"未来の目標から逆算して、現在すべきことを考える思考法は？","options":["フォアキャスティング","バックキャスティング","ブレインストーミング","MECE"],"answer":1,"explanation":"未来を起点にするのがバックキャスティングです。","keywords":["バックキャスティング"]},
+    {"category":"ストラテジ","id":"ST-055","question":"一定期間の利用権に対して料金を支払う形態は？","options":["サブスクリプション","ボリュームライセンス","アドウェア","アクティベーション"],"answer":0,"explanation":"動画配信やソフトウェア配布で一般的なモデルです。","keywords":["サブスクリプション"]},
+    {"category":"ストラテジ","id":"ST-097","question":"高齢者や障害者を含め、誰でも同様に利用できる度合いは？","options":["スケーラビリティ","アクセシビリティ","ダイバーシティ","トレーサビリティ"],"answer":1,"explanation":"Accessibility(近づきやすさ)の意味です。","keywords":["アクセシビリティ"]},
+    {"category":"ストラテジ","id":"ST-122","question":"PPMにおいて、市場成長率は高いがシェアが低い領域は？","options":["花形","金のなる木","負け犬","問題児"],"answer":3,"explanation":"投資が必要な「問題児」の領域です。","keywords":["PPM","問題児"]},
 
-    document.querySelectorAll('.tag-btn').forEach(btn=>{
-      // クリックでstartQuizを呼び出す
-      btn.onclick=()=>startQuiz(btn.dataset.tag);
+    // テクノロジ
+    {"category":"テクノロジ","id":"TC-001","question":"Bluetoothの仕様の一つで、省電力性に優れたIoT向け規格は？","options":["BLE","NFC","IrDA","PLC"],"answer":0,"explanation":"Bluetooth Low Energyの略称です。","keywords":["BLE","IoT"]},
+    {"category":"テクノロジ","id":"TC-003","question":"ドメイン名とIPアドレスを対応付ける仕組みは？","options":["DHCP","DNS","FTP","SNMP"],"answer":1,"explanation":"Domain Name Systemの略称です。","keywords":["DNS"]},
+    {"category":"テクノロジ","id":"TC-006","question":"一連の処理が全て成功するか失敗するかのどちらかになる性質は？","options":["一貫性","耐久性","原子性","独立性"],"answer":2,"explanation":"トランザクションのACID特性の一つ「原子性」です。","keywords":["トランザクション"]},
+    {"category":"テクノロジ","id":"TC-011","question":"3次元画像処理や動画処理を高速化するための演算装置は？","options":["CPU","GPU","SSD","ROM"],"answer":1,"explanation":"Graphics Processing Unitの略称です。","keywords":["GPU"]},
+    {"category":"テクノロジ","id":"TC-018","question":"犯罪の証拠を収集し、コンピュータを解析する技術は？","options":["ディープラーニング","ブロックチェーン","デジタルフォレンジックス","VPN"],"answer":2,"explanation":"法的証拠を保全するための手続きです。","keywords":["デジタルフォレンジックス"]},
+    {"category":"テクノロジ","id":"TC-023","question":"画像から文字を読み取り、テキストデータに変換する技術は？","options":["OCR","GPU","CCD","DVI"],"answer":0,"explanation":"Optical Character Recognitionの略です。","keywords":["OCR"]},
+    {"category":"テクノロジ","id":"TC-024","question":"複数のDB間で内容を複製し、同期させる機能は？","options":["アーカイブ","レプリケーション","ロールバック","正規化"],"answer":1,"explanation":"データの複製を作るレプリケーションです。","keywords":["レプリケーション"]},
+    {"category":"テクノロジ","id":"TC-032","question":"無線LANの暗号化規格として、WEPよりも安全なものは？","options":["ESSID","WPA2","VPN","HTTPS"],"answer":1,"explanation":"現在はWPA2やWPA3が標準です。","keywords":["WPA2"]},
+    {"category":"テクノロジ","id":"TC-034","question":"ランサムウェア対策として最も有効なものは？","options":["暗号化","多要素認証","オフラインバックアップ","IDロック"],"answer":2,"explanation":"ネットワークから切り離したバックアップが最強の防御です。","keywords":["ランサムウェア"]},
+    {"category":"テクノロジ","id":"TC-040","question":"電力を切ると内容が消えてしまうメモリはどれか？","options":["SSD","ROM","DRAM","フラッシュメモリ"],"answer":2,"explanation":"DRAMは揮発性メモリの代表例です。","keywords":["DRAM","揮発性メモリ"]}
+];
+
+let currentIndex = 0;
+let learnedKeywords = new Set();
+
+function init() {
+    renderQuestion();
+}
+
+function renderQuestion() {
+    const q = quizData[currentIndex];
+    document.getElementById('category-tag').innerText = q.category;
+    document.getElementById('q-id').innerText = q.id;
+    document.getElementById('question-text').innerText = q.question;
+    document.getElementById('feedback').style.display = 'none';
+
+    const container = document.getElementById('options-container');
+    container.innerHTML = '';
+
+    q.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'opt-btn';
+        btn.innerText = opt;
+        btn.onclick = () => checkAnswer(idx);
+        container.appendChild(btn);
     });
+}
 
-    // モーダルの「次へ」ボタンの処理
-    document.getElementById('modalNextBtn').onclick = () => {
-      document.getElementById('overlay').style.display = 'none'; // モーダルを閉じる
+function checkAnswer(selectedIdx) {
+    const q = quizData[currentIndex];
+    const feedback = document.getElementById('feedback');
+    const resultMsg = document.getElementById('result-msg');
+    const explanation = document.getElementById('explanation');
 
-      // 次の問題へ進む
-      if (++current < questions.length) {
-        showQuestion();
-      } else {
-        showResults();
-      }
-    };
-  });
-
-
-  /* CSVパーサー (変更なし) */
-  async function loadCSV(file){
-    const text = await (await fetch(file)).text();
-    const parseCsvLine = (line) => {
-      const result = [];
-      let currentField = '';
-      let inQuote = false;
-      for (let i = 0; i < line.length; i++) {
-        const char = line[i];
-        if (char === '"') {
-          if (inQuote && line[i + 1] === '"') {
-            currentField += '"';
-            i++;
-          } else {
-            inQuote = !inQuote;
-          }
-        } else if (char === ',' && !inQuote) {
-          result.push(currentField);
-          currentField = '';
-        } else {
-          currentField += char;
-        }
-      }
-      result.push(currentField);
-      return result.map(field => {
-        if (field.startsWith('"') && field.endsWith('"')) {
-          return field.substring(1, field.length - 1).replace(/""/g, '"');
-        }
-        return field;
-      });
-    };
-    return text.trim().split(/\r?\n/).slice(1).map(line => {
-      if (!line) return null;
-      const c = parseCsvLine(line);
-      if (c.length < 5) return null;
-      const lastIdx = c.length - 1;
-      const answerIdx = lastIdx - 1;
-      return {
-        q: c[1],
-        options: c.slice(2, answerIdx),
-        answer: +c[answerIdx] - 1,
-        explanation: c[lastIdx]
-      };
-    }).filter(q => q !== null);
-  }
-
-  /* shuffle (変更なし) */
-  function shuffle(a){
-    for(let i=a.length-1;i>0;i--){
-      const j=Math.floor(Math.random()*(i+1));
-      [a[i],a[j]]=[a[j],a[i]];
-    }
-    return a;
-  }
-
-  /* csvFileName (★後で修正が必要です★) */
-  function csvFileName(tag){
-    // ▼▼▼ ここを修正して、strategy.csvなどを読み込むようにします ▼▼▼
-    return {
-      strategy: 'strategy.csv',    // 例: ストラテジ系ボタンが押されたとき
-      management: 'management.csv', // 例: マネジメント系ボタンが押されたとき
-      technology: 'technology.csv' // 例: テクノロジ系ボタンが押されたとき
-    }[tag];
-  }
-
-  /* startQuiz (全問出題するように修正済み - 変更なし) */
-  async function startQuiz(tag){
-    document.getElementById('controls').style.display='none';
-    document.getElementById('mainTitle').style.display='none';
-
-    let pool;
-    const fileName = csvFileName(tag); // ← 修正後の関数からファイル名を取得
-    if (!fileName) {
-        alert("対応するCSVファイルが見つかりません。");
-        document.getElementById('controls').style.display='';
-        document.getElementById('mainTitle').style.display='block';
-        return;
-    }
-
-    try {
-      pool = await loadCSV(fileName); // ← 指定されたファイル名を読み込む
-    } catch(err) {
-      console.error("CSV Load Error:", err);
-      pool = [];
-    }
-
-    if (!pool || pool.length === 0) {
-        alert(`問題ファイル(${fileName})の読み込みに失敗しました。ファイルが存在するか確認してください。`);
-        document.getElementById('controls').style.display='';
-        document.getElementById('mainTitle').style.display='block';
-        return;
-    }
-
-    questions=shuffle(pool).slice(0,pool.length);
-    current=score=0;
-    document.getElementById('result').style.display='none';
-    document.getElementById('quiz').style.display='';
-    showQuestion();
-  }
-
-  /* showQuestion (innerHTML を使用 - 変更なし) */
-  function showQuestion(){
-    const q=questions[current];
-    document.getElementById('question').innerHTML = q.q;
-    const ul=document.getElementById('options'); ul.innerHTML='';
-    q.options.forEach((opt,i)=>{
-      const li=document.createElement('li');
-      li.innerHTML=`<button>${opt}</button>`;
-      li.firstChild.onclick=()=>selectAnswer(i);
-      ul.appendChild(li);
-    });
-    document.getElementById('progress').textContent=`${current+1}/${questions.length}`;
-  }
-
-
-  /* selectAnswer (innerHTML を使用 - 変更なし) */
-  function selectAnswer(idx){
-    const q=questions[current],ul=document.getElementById('options');
-
-    // 選択肢のボタンを無効化＆色付け
-    [...ul.children].forEach((li,i)=>{
-      const b=li.firstChild; b.disabled=true;
-      if(i===q.answer)b.style.background='lightgreen';
-      else if(i===idx)b.style.background='salmon';
-    });
-
-    // モーダルの中身を作成
-    let msgHtml = '';
-    if (idx === q.answer) {
-      score++;
-      msgHtml = '<span style="color:green; font-weight: bold;">🟢 正解！</span>';
+    if (selectedIdx === q.answer) {
+        resultMsg.innerText = "⭕ 正解！";
+        feedback.className = 'correct';
+        // キーワードを習得リストに追加
+        q.keywords.forEach(k => learnedKeywords.add(k));
+        updateVocabUI();
     } else {
-      msgHtml = `<span style="color:red; font-weight: bold;">❌ 不正解</span>
-                  <br><span style="color:#555">正解: ${q.options[q.answer]}</span>`;
+        resultMsg.innerText = "❌ 不正解...";
+        feedback.className = 'incorrect';
     }
 
-    // モーダルの要素を取得して中身をセット
-    document.getElementById('modal-message').innerHTML = msgHtml;
-    document.getElementById('modal-explanation').innerHTML = "<b>解説:</b> " + q.explanation;
+    explanation.innerText = q.explanation;
+    feedback.style.display = 'block';
+    
+    // 全てのボタンを無効化
+    document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
+}
 
-    // オーバーレイ（モーダル）を表示
-    document.getElementById('overlay').style.display = 'flex';
-  }
+function updateVocabUI() {
+    const container = document.getElementById('learned-keywords');
+    container.innerHTML = '';
+    learnedKeywords.forEach(k => {
+        const badge = document.createElement('span');
+        badge.className = 'badge';
+        badge.innerText = k;
+        container.appendChild(badge);
+    });
+    document.getElementById('learned-count').innerText = learnedKeywords.size;
+}
 
+document.getElementById('next-btn').onclick = () => {
+    currentIndex = (currentIndex + 1) % quizData.length;
+    document.querySelectorAll('.opt-btn').forEach(b => b.disabled = false);
+    renderQuestion();
+};
 
-  /* showResults (変更なし) */
-  function showResults(){
-    document.getElementById('quiz').style.display='none';
-    const r=document.getElementById('result');
-    r.innerHTML=`<h2>結果: ${score}/${questions.length}</h2>`;
-    r.style.display='';
-    document.getElementById('controls').style.display='';
-    document.getElementById('mainTitle').style.display='block';
-  }
+init();
 </script>
+
 </body>
 </html>
