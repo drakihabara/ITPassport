@@ -6,24 +6,20 @@
     <title>ITパスポート</title>
     <style>
         :root {
-            --main: #3498db;
-            --bg: #f0f2f5;
-            --card: #ffffff;
-            --red: #e74c3c;
-            --green: #2ecc71;
-            --text: #333;
-            --border: #ccc;
-            --disabled: #bdc3c7;
+            --main: #3498db; --bg: #f0f2f5; --card: #ffffff;
+            --red: #e74c3c; --green: #2ecc71; --text: #333;
+            --border: #ccc; --disabled: #bdc3c7;
         }
 
         body, button, .card {
             font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
-            touch-action: manipulation;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation; user-select: none; -webkit-tap-highlight-color: transparent;
         }
 
-        body { background-color: var(--bg); margin: 0; min-height: 100vh; color: var(--text); overflow-x: hidden; }
+        body { 
+            background-color: var(--bg); margin: 0; min-height: 100vh; color: var(--text); overflow-x: hidden; 
+            padding-top: env(safe-area-inset-top); /* ノッチ対策 */
+        }
 
         .container { max-width: 600px; margin: 0 auto; padding: 20px; padding-bottom: 60px; display: flex; flex-direction: column; align-items: center; }
         .screen { display: none; width: 100%; flex-direction: column; align-items: center; }
@@ -36,32 +32,20 @@
 
         .main-btn, .list-btn { width: 280px; padding: 18px 0; border-radius: 30px; font-size: 18px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .main-btn { background: var(--main); color: white; }
-        
-        /* 単語帳ボタン（有効時） */
         .list-btn { background: white; color: var(--main); border: 2px solid var(--main); }
-        /* 単語帳ボタン（無効時） */
         .list-btn:disabled { background: #eee; color: #aaa; border-color: #ccc; cursor: default; box-shadow: none; }
 
-        /* --- クイズ画面 --- */
         #quiz-question { margin: 2rem 0 1.5rem; font-size: 1.25rem; font-weight: bold; line-height: 1.6; text-align: left; width: 100%; }
         .options-list { list-style: none; padding: 0; margin: 0; width: 100%; }
         .options-list li { margin-bottom: 12px; }
         .options-list button { width: 100%; padding: 1.1rem; font-size: 1.1rem; border: 1px solid var(--border); border-radius: 12px; background: #fff; text-align: left; line-height: 1.4; color: var(--text); }
 
-        /* --- 単語帳カード（ドリル） --- */
         #card-container { position: relative; width: 310px; height: 420px; margin-bottom: 30px; }
-        .card { 
-            width: 100%; height: 100%; background: white; border-radius: 25px; 
-            box-shadow: 0 6px 20px rgba(0,0,0,0.06); display: flex; flex-direction: column;
-            justify-content: center; align-items: center; text-align: center; padding: 30px;
-            box-sizing: border-box;
-        }
+        .card { width: 100%; height: 100%; background: white; border-radius: 25px; box-shadow: 0 6px 20px rgba(0,0,0,0.06); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 30px; box-sizing: border-box; }
         .v-name { font-size: 36px; font-weight: bold; color: var(--main); width: 100%; line-height: 1.2; margin-bottom: 20px; }
         .ja-area { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; position: relative; }
-        
         .v-def { font-size: 24px; font-weight: bold; color: var(--red); opacity: 0; transition: opacity 0.2s; pointer-events: none; line-height: 1.4; position: absolute; width: 100%; }
         .v-def.show { opacity: 1; }
-        /* 文字の中央配置を保証 */
         .hint-text { font-size: 16px; color: #ccc; width: 100%; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
 
         .controls { width: 100%; max-width: 320px; display: flex; gap: 15px; }
@@ -69,18 +53,11 @@
         .btn-check { background-color: #ffe0b2; color: #d35400; }
         .btn-master { background-color: #c8e6c9; color: #27ae60; }
 
-        /* --- 解説モーダル --- */
-        #overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(240, 242, 245, 0.85); 
-            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-            display: none; z-index: 100; align-items: center; justify-content: center;
-        }
+        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(240, 242, 245, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: none; z-index: 100; align-items: center; justify-content: center; }
         #modal { background: #fff; padding: 1.8rem; border-radius: 20px; width: 90%; max-width: 420px; border: 1px solid #eee; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         #modal-message { text-align: center; margin-bottom: 10px; }
         #modal-explanation { font-size: 1rem; color: #444; margin-top: 1.2rem; border-top: 1.5px solid #f0f0f0; padding-top: 1.2rem; line-height: 1.6; }
         #modalNextBtn { width: 100%; padding: 1.1rem; margin-top: 1.8rem; border-radius: 30px; background: var(--main); color: #fff; font-size: 1.1rem; }
-
         .reset-link { margin-top: 40px; font-size: 12px; color: #bbb; text-decoration: underline; cursor: pointer; }
     </style>
 </head>
@@ -93,7 +70,6 @@
         <button class="main-btn" onclick="startQuiz('ストラテジ')">ストラテジ系</button>
         <button class="main-btn" onclick="startQuiz('マネジメント')">マネジメント系</button>
         <button class="main-btn" onclick="startQuiz('テクノロジ')">テクノロジ系</button>
-        <button class="main-btn" onclick="startQuiz('ALL')">全分野ランダム</button>
         <button id="vocab-btn" class="list-btn" style="margin-top:20px;" onclick="startVocabMode()">単語帳モード</button>
         <div class="reset-link" onclick="resetAllData()">学習データをリセット</div>
     </div>
@@ -113,7 +89,7 @@
                 </div>
             </div>
         </div>
-        <div class="controls">
+        <div class="controls" id="v-controls">
             <button class="action-btn btn-check" onclick="handleVocabResult(false)">まだ...</button>
             <button class="action-btn btn-master" onclick="handleVocabResult(true)">覚えた！</button>
         </div>
@@ -134,7 +110,7 @@
     let vocabQueue = [];
     let currentIdx = 0;
     let isAnswerShown = false;
-    let isReviewMode = false; // クイズ直後の復習ドリルかどうか
+    let isReviewMode = false;
 
     const KEY_LEARN = 'itp_v11_learn';
     const KEY_QCNT  = 'itp_v11_qcnt';
@@ -161,28 +137,26 @@
         document.getElementById('main-title').style.display = (id === 'screen-home') ? 'block' : 'none';
     }
 
-    // 単語帳ボタンの無効化処理
     function updateVocabButtonState() {
         const btn = document.getElementById('vocab-btn');
-        btn.disabled = (learningList.size === 0);
+        if(btn) btn.disabled = (learningList.size === 0);
     }
 
-    // --- クイズロジック ---
     function startQuiz(cat) {
         sessionQueue = []; vocabQueue = [];
-        const filter = (n) => allData.questions.filter(q => (cat === 'ALL' || q.category === cat) && (qCounts[q.id] || 0) === n);
+        const filter = (n) => allData.questions.filter(q => q.category === cat && (qCounts[q.id] || 0) === n);
+        
         const pick = (target, needed, n) => {
             let pool = filter(n).filter(x => !target.includes(x));
-            if (pool.length < needed) {
-                pool = [...pool, ...allData.questions.filter(q => (qCounts[q.id] || 0) === n && !target.includes(q) && !pool.includes(q))];
-            }
             return pool.sort(() => Math.random() - 0.5).slice(0, needed);
         };
+
         sessionQueue.push(...pick([], 7, 0));
         sessionQueue.push(...pick(sessionQueue, 2, 1));
         sessionQueue.push(...pick(sessionQueue, 1, 2));
+
         if (sessionQueue.length < 10) {
-            let others = allData.questions.filter(q => !sessionQueue.includes(q) && (qCounts[q.id] || 0) < 3).sort(() => Math.random() - 0.5);
+            let others = allData.questions.filter(q => q.category === cat && !sessionQueue.includes(q) && (qCounts[q.id] || 0) < 3).sort(() => Math.random() - 0.5);
             sessionQueue.push(...others.slice(0, 10 - sessionQueue.length));
         }
         currentIdx = 0; changeScreen('screen-quiz'); renderQuiz();
@@ -204,15 +178,16 @@
     function checkQuiz(idx) {
         const q = sessionQueue[currentIdx];
         const isCorrect = (idx === q.answer);
+        const tIds = q.term_ids || []; // null安全
         if (isCorrect) {
             qCounts[q.id] = (qCounts[q.id] || 0) + 1;
             if (qCounts[q.id] >= 3) {
-                q.term_ids.forEach(tid => learningList.delete(tid));
+                tIds.forEach(tid => learningList.delete(tid));
             }
             showModal(true, "", q.explanation);
         } else {
             qCounts[q.id] = 0;
-            q.term_ids.forEach(tid => {
+            tIds.forEach(tid => {
                 vCounts[tid] = 0;
                 learningList.add(tid);
                 if (!vocabQueue.includes(tid)) vocabQueue.push(tid);
@@ -235,28 +210,20 @@
             renderQuiz();
         } else {
             if (vocabQueue.length > 0) {
-                currentIdx = 0;
-                isReviewMode = true; // 復習モード開始
-                changeScreen('screen-vocab');
-                renderVocab();
-            } else {
-                location.reload();
-            }
+                currentIdx = 0; isReviewMode = true;
+                changeScreen('screen-vocab'); renderVocab();
+            } else { location.reload(); }
         }
     };
 
-    // --- 単語帳ドリル ---
     function startVocabMode() {
         const list = Array.from(learningList);
-        if (list.length === 0) return; // ボタン無効化されているため通常は通らない
-        
-        isReviewMode = false; // 通常の学習モード
-        vocabQueue = [];
+        if (list.length === 0) return;
+        isReviewMode = false; vocabQueue = [];
         const pickV = (needed, n) => list.filter(tid => (vCounts[tid] || 0) === n).sort(() => Math.random() - 0.5).slice(0, needed);
         vocabQueue.push(...pickV(7, 0));
         vocabQueue.push(...pickV(2, 1));
         vocabQueue.push(...pickV(1, 2));
-
         if (vocabQueue.length < 10 && list.length > vocabQueue.length) {
             vocabQueue.push(...list.filter(t => !vocabQueue.includes(t)).sort(() => Math.random() - 0.5).slice(0, 10 - vocabQueue.length));
         }
@@ -287,7 +254,6 @@
         const tid = vocabQueue[currentIdx];
         if (isMastered) {
             triggerHaptic(true);
-            // 【修正】クイズ直後の復習モード（isReviewMode=true）ではカウントを増やさない
             if (!isReviewMode) {
                 vCounts[tid] = (vCounts[tid] || 0) + 1;
                 if (vCounts[tid] >= 3) learningList.delete(tid);
