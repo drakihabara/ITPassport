@@ -43,26 +43,27 @@
         .options-list li { margin-bottom: 12px; }
         .options-list button { width: 100%; padding: 1.1rem; font-size: 1.1rem; border: 1px solid var(--border); border-radius: 12px; background: #fff; text-align: left; line-height: 1.4; color: var(--text); }
 
-        /* --- 単語帳カード（ドリル） --- */
-        #card-container { position: relative; width: 310px; height: 400px; margin-bottom: 30px; }
+        /* --- 単語帳カード --- */
+        #card-container { position: relative; width: 310px; height: 420px; margin-bottom: 30px; }
         .card { 
             width: 100%; height: 100%; background: white; border-radius: 25px; 
             box-shadow: 0 6px 20px rgba(0,0,0,0.06); display: flex; flex-direction: column;
-            justify-content: center; align-items: center; text-align: center; padding: 25px;
+            justify-content: center; align-items: center; text-align: center; padding: 30px;
             box-sizing: border-box;
         }
-        .v-name { font-size: 34px; font-weight: bold; color: var(--main); margin-bottom: 15px; width: 100%; line-height: 1.2; }
-        .ja-area { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; text-align: center; }
-        .v-def { font-size: 22px; font-weight: bold; color: var(--red); opacity: 0; transition: opacity 0.2s; pointer-events: none; line-height: 1.4; }
+        .v-name { font-size: 36px; font-weight: bold; color: var(--main); width: 100%; line-height: 1.2; margin-bottom: 10px; }
+        /* ja-area をカード全体の余白として扱い、子要素を中央に配置 */
+        .ja-area { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; text-align: center; position: relative; }
+        .v-def { font-size: 22px; font-weight: bold; color: var(--red); opacity: 0; transition: opacity 0.2s; pointer-events: none; line-height: 1.4; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; }
         .v-def.show { opacity: 1; }
-        .hint-text { font-size: 15px; color: #ccc; width: 100%; text-align: center; }
+        .hint-text { font-size: 15px; color: #ccc; width: 100%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
 
         .controls { width: 100%; max-width: 320px; display: flex; gap: 15px; }
         .action-btn { flex: 1; height: 65px; border-radius: 35px; font-size: 17px; }
         .btn-check { background-color: #ffe0b2; color: #d35400; }
         .btn-master { background-color: #c8e6c9; color: #27ae60; }
 
-        /* --- 解説モーダル --- */
+        /* --- モーダル（解説） --- */
         #overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(240, 242, 245, 0.85); 
@@ -104,7 +105,6 @@
     </div>
 
     <div id="screen-vocab" class="screen">
-        <div style="font-size: 14px; color: #888; margin-bottom: 15px;">単語帳ドリル</div>
         <div id="card-container">
             <div class="card" id="card-face">
                 <div class="v-name" id="v-name"></div>
@@ -143,9 +143,10 @@
     let currentIdx = 0;
     let isAnswerShown = false;
 
-    const KEY_LEARN = 'itp_v8_learn';
-    const KEY_QCNT  = 'itp_v8_qcnt';
-    const KEY_VCNT  = 'itp_v8_vcnt';
+    // ストレージキー
+    const KEY_LEARN = 'itp_v9_learn';
+    const KEY_QCNT  = 'itp_v9_qcnt';
+    const KEY_VCNT  = 'itp_v9_vcnt';
 
     let learningList = new Set(JSON.parse(localStorage.getItem(KEY_LEARN)) || []);
     let qCounts = JSON.parse(localStorage.getItem(KEY_QCNT)) || {}; 
@@ -158,7 +159,7 @@
             const [resQ, resT] = await Promise.all([fetch('questions.json'), fetch('terms.json')]);
             allData.questions = await resQ.json();
             allData.terms = await resT.json();
-        } catch (e) { console.error("Data Load Error"); }
+        } catch (e) { console.error("Data failed to load."); }
     }
 
     function changeScreen(id) {
@@ -174,7 +175,8 @@
         const pick = (target, needed, n) => {
             let pool = filter(n).filter(x => !target.includes(x));
             if (pool.length < needed) {
-                pool = [...pool, ...allData.questions.filter(q => (qCounts[q.id] || 0) === n && !target.includes(q) && !pool.includes(q))];
+                let anyPool = allData.questions.filter(q => (qCounts[q.id] || 0) === n && !target.includes(q) && !pool.includes(q));
+                pool = [...pool, ...anyPool];
             }
             return pool.sort(() => Math.random() - 0.5).slice(0, needed);
         };
@@ -215,7 +217,7 @@
             q.term_ids.forEach(tid => {
                 vCounts[tid] = 0;
                 learningList.add(tid);
-                if (!vocabQueue.includes(tid)) vocabQueue.push(tid); // 今回の復習用
+                if (!vocabQueue.includes(tid)) vocabQueue.push(tid);
             });
             showModal(false, q.options[q.answer], q.explanation);
         }
@@ -234,9 +236,8 @@
         if (++currentIdx < sessionQueue.length) {
             renderQuiz();
         } else {
-            // クイズ終了後、間違えたキーワードがあれば即座に単語帳モードへ移行
             if (vocabQueue.length > 0) {
-                currentIdx = 0; // vocabQueue用のインデックスとして再利用
+                currentIdx = 0;
                 changeScreen('screen-vocab');
                 renderVocab();
             } else {
@@ -245,7 +246,7 @@
         }
     };
 
-    // --- 単語帳ドリル ---
+    // --- 単語帳 ---
     function showWordList() {
         const container = document.getElementById('word-list-container');
         container.innerHTML = '';
@@ -254,7 +255,7 @@
         } else {
             learningList.forEach(tid => {
                 const t = allData.terms[tid];
-                if(t) container.innerHTML += `<div class="list-item"><div class="list-name">${t.name}</div><div class="list-count">${vCounts[tid]||0}/3</div></div>`;
+                if(t) container.innerHTML += `<div class="list-item"><div class="list-name">${t.name}</div><div class="list-count">${vCounts[tid]||0}/3 クリア</div></div>`;
             });
         }
         changeScreen('screen-list');
