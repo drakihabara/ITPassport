@@ -29,7 +29,6 @@
         .active { display: flex; }
 
         h1 { font-size: 28px; margin: 20px 0 40px; text-align: center; cursor: pointer; }
-        .meta { font-size: 14px; color: #888; margin-bottom: 10px; width: 100%; text-align: center; }
 
         button { border: none; cursor: pointer; font-weight: bold; transition: transform 0.1s; }
         button:active { transform: scale(0.96); }
@@ -38,13 +37,13 @@
         .main-btn { background: var(--main); color: white; }
         .list-btn { background: white; color: var(--main); border: 2px solid var(--main); }
 
-        /* クイズ画面 */
-        #quiz-question { margin: 1rem 0; font-size: 1.25rem; font-weight: bold; line-height: 1.6; text-align: left; width: 100%; }
+        /* --- クイズ画面（メタ情報を削除） --- */
+        #quiz-question { margin: 2rem 0 1.5rem; font-size: 1.25rem; font-weight: bold; line-height: 1.6; text-align: left; width: 100%; }
         .options-list { list-style: none; padding: 0; margin: 0; width: 100%; }
         .options-list li { margin-bottom: 12px; }
-        .options-list button { width: 100%; padding: 1.1rem; font-size: 1.1rem; border: 1px solid var(--border); border-radius: 12px; background: #fff; text-align: left; line-height: 1.4; }
+        .options-list button { width: 100%; padding: 1.1rem; font-size: 1.1rem; border: 1px solid var(--border); border-radius: 12px; background: #fff; text-align: left; line-height: 1.4; color: var(--text); }
 
-        /* カードUI（単語帳ドリル） */
+        /* --- 単語帳ドリル（カードUI） --- */
         #card-container { position: relative; width: 310px; height: 380px; margin-bottom: 30px; }
         .card { 
             width: 100%; height: 100%; background: white; border-radius: 25px; 
@@ -63,7 +62,7 @@
         .btn-check { background-color: #ffe0b2; color: #d35400; }
         .btn-master { background-color: #c8e6c9; color: #27ae60; }
 
-        /* 目に優しいオーバーレイ */
+        /* --- 解説モーダル（目に優しいボケ背景） --- */
         #overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(240, 242, 245, 0.85); 
@@ -75,7 +74,7 @@
         #modal-explanation { font-size: 1rem; color: #444; margin-top: 1.2rem; border-top: 1.5px solid #f0f0f0; padding-top: 1.2rem; line-height: 1.6; }
         #modalNextBtn { width: 100%; padding: 1.1rem; margin-top: 1.8rem; border-radius: 30px; background: var(--main); color: #fff; font-size: 1.1rem; }
 
-        /* リスト画面 */
+        /* --- 単語帳リスト画面 --- */
         #word-list-container { width: 100%; background: white; border-radius: 20px; padding: 10px; margin-top: 10px; }
         .list-item { border-bottom: 1px solid #eee; padding: 18px 10px; display: flex; justify-content: space-between; align-items: center; }
         .list-item:last-child { border-bottom: none; }
@@ -101,13 +100,12 @@
     </div>
 
     <div id="screen-quiz" class="screen">
-        <div class="meta" id="q-meta"></div>
         <div id="quiz-question"></div>
         <ul id="options" class="options-list"></ul>
     </div>
 
     <div id="screen-vocab" class="screen">
-        <div class="meta">単語帳ドリル</div>
+        <div style="font-size: 14px; color: #888; margin-bottom: 10px;">単語帳ドリル</div>
         <div id="card-container">
             <div class="card" id="card-face">
                 <div class="v-name" id="v-name"></div>
@@ -126,7 +124,6 @@
     <div id="screen-list" class="screen">
         <div style="width:100%; padding:10px;">
             <h2 style="margin:0; font-size: 22px; text-align: center;">学習中の単語</h2>
-            <p style="font-size: 12px; color: #888; text-align: center; margin-top: 5px;">クイズで間違えた用語を復習します</p>
         </div>
         <button class="main-btn" style="margin: 10px 0;" onclick="startVocabMode()">ドリルを開始する</button>
         <div id="word-list-container"></div>
@@ -149,9 +146,10 @@
     let currentIdx = 0;
     let isAnswerShown = false;
 
-    const KEY_LEARN = 'itp_learn_v5';
-    const KEY_QCNT = 'itp_q_cnt_v5';
-    const KEY_VCNT = 'itp_v_cnt_v5';
+    // ストレージキー
+    const KEY_LEARN = 'itp_v6_learn';
+    const KEY_QCNT  = 'itp_v6_qcnt';
+    const KEY_VCNT  = 'itp_v6_vcnt';
 
     let learningList = new Set(JSON.parse(localStorage.getItem(KEY_LEARN)) || []);
     let qCounts = JSON.parse(localStorage.getItem(KEY_QCNT)) || {}; 
@@ -164,7 +162,7 @@
             const [resQ, resT] = await Promise.all([fetch('questions.json'), fetch('terms.json')]);
             allData.questions = await resQ.json();
             allData.terms = await resT.json();
-        } catch (e) { console.error("Data Load Error"); }
+        } catch (e) { console.error("JSON Error"); }
     }
 
     function changeScreen(id) {
@@ -173,7 +171,7 @@
         document.getElementById('main-title').style.display = (id === 'screen-home') ? 'block' : 'none';
     }
 
-    // --- クイズロジック ---
+    // --- クイズ ---
     function startQuiz(cat) {
         sessionQueue = [];
         const filter = (n) => allData.questions.filter(q => (cat === 'ALL' || q.category === cat) && (qCounts[q.id] || 0) === n);
@@ -197,7 +195,6 @@
 
     function renderQuiz() {
         const q = sessionQueue[currentIdx];
-        document.getElementById('q-meta').innerText = `${q.category} | ${q.id} (${currentIdx + 1}/10)`;
         document.getElementById('quiz-question').innerHTML = q.question;
         const ul = document.getElementById('options'); ul.innerHTML = '';
         q.options.forEach((opt, i) => {
@@ -242,7 +239,7 @@
         else location.reload();
     };
 
-    // --- 単語帳（リスト & ドリル） ---
+    // --- 単語帳 ---
     function showWordList() {
         const container = document.getElementById('word-list-container');
         container.innerHTML = '';
@@ -262,16 +259,7 @@
     function startVocabMode() {
         const list = Array.from(learningList);
         if (list.length === 0) return alert("学習中の単語がありません。");
-        
-        vocabQueue = [];
-        const pickV = (needed, n) => list.filter(tid => (vCounts[tid] || 0) === n).sort(() => Math.random() - 0.5).slice(0, needed);
-        vocabQueue.push(...pickV(7, 0));
-        vocabQueue.push(...pickV(2, 1));
-        vocabQueue.push(...pickV(1, 2));
-
-        if (vocabQueue.length < 10 && list.length > vocabQueue.length) {
-            vocabQueue.push(...list.filter(t => !vocabQueue.includes(t)).sort(() => Math.random() - 0.5).slice(0, 10 - vocabQueue.length));
-        }
+        vocabQueue = list.sort(() => Math.random() - 0.5).slice(0, 10);
         currentIdx = 0; changeScreen('screen-vocab'); renderVocab();
     }
 
