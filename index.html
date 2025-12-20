@@ -3,53 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>ITパスポート</title>
+    <title>ITパスポート対策</title>
     <style>
         :root {
             --main: #3498db; --bg: #f0f2f5; --card: #ffffff;
             --red: #e74c3c; --green: #2ecc71; --text: #333;
             --border: #ccc; --disabled: #bdc3c7;
         }
-
         body, button, .card {
             font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
-            touch-action: manipulation; /* タップ遅延の解消 */
-            user-select: none; -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation; user-select: none; -webkit-tap-highlight-color: transparent;
         }
-
         body { background-color: var(--bg); margin: 0; min-height: 100vh; color: var(--text); overflow-x: hidden; padding-top: env(safe-area-inset-top); }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; padding-bottom: 60px; display: flex; flex-direction: column; align-items: center; }
         .screen { display: none; width: 100%; flex-direction: column; align-items: center; }
         .active { display: flex; }
-
         h1 { font-size: 28px; margin: 20px 0 40px; text-align: center; cursor: pointer; }
-
         button { border: none; cursor: pointer; font-weight: bold; transition: transform 0.1s; touch-action: manipulation; }
         button:active:not(:disabled) { transform: scale(0.96); }
-
         .main-btn, .list-btn { width: 280px; padding: 18px 0; border-radius: 30px; font-size: 18px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .main-btn { background: var(--main); color: white; }
         .list-btn { background: white; color: var(--main); border: 2px solid var(--main); }
         .list-btn:disabled { background: #eee; color: #aaa; border-color: #ccc; cursor: default; box-shadow: none; }
-
         #quiz-question { margin: 2rem 0 1.5rem; font-size: 1.25rem; font-weight: bold; line-height: 1.6; text-align: left; width: 100%; }
         .options-list { list-style: none; padding: 0; margin: 0; width: 100%; }
         .options-list li { margin-bottom: 12px; }
         .options-list button { width: 100%; padding: 1.1rem; font-size: 1.1rem; border: 1px solid var(--border); border-radius: 12px; background: #fff; text-align: left; line-height: 1.4; color: var(--text); }
-
         #card-container { position: relative; width: 310px; height: 420px; margin-bottom: 30px; }
         .card { width: 100%; height: 100%; background: white; border-radius: 25px; box-shadow: 0 6px 20px rgba(0,0,0,0.06); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 30px; box-sizing: border-box; }
-        .v-name { font-size: 36px; font-weight: bold; color: var(--main); width: 100%; line-height: 1.2; margin-bottom: 20px; }
+        .v-name { font-size: 34px; font-weight: bold; color: var(--main); width: 100%; line-height: 1.2; margin-bottom: 20px; }
         .ja-area { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; position: relative; }
-        .v-def { font-size: 24px; font-weight: bold; color: var(--red); opacity: 0; transition: opacity 0.2s; pointer-events: none; line-height: 1.4; position: absolute; width: 100%; }
+        .v-def { font-size: 22px; font-weight: bold; color: var(--red); opacity: 0; transition: opacity 0.2s; pointer-events: none; line-height: 1.4; position: absolute; width: 100%; }
         .v-def.show { opacity: 1; }
         .hint-text { font-size: 16px; color: #ccc; width: 100%; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
-
         .controls { width: 100%; max-width: 320px; display: flex; gap: 15px; }
         .action-btn { flex: 1; height: 65px; border-radius: 35px; font-size: 17px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .btn-check { background-color: #ffe0b2; color: #d35400; }
         .btn-master { background-color: #c8e6c9; color: #27ae60; }
-
         #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(240, 242, 245, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: none; z-index: 100; align-items: center; justify-content: center; }
         #modal { background: #fff; padding: 1.8rem; border-radius: 20px; width: 90%; max-width: 420px; border: 1px solid #eee; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         #modal-message { text-align: center; margin-bottom: 10px; }
@@ -59,10 +49,8 @@
     </style>
 </head>
 <body>
-
 <div class="container">
     <h1 id="main-title" onclick="location.reload()">ITパスポート</h1>
-
     <div id="screen-home" class="screen active">
         <button class="main-btn" onpointerdown="startQuiz('ストラテジ')">ストラテジ系</button>
         <button class="main-btn" onpointerdown="startQuiz('マネジメント')">マネジメント系</button>
@@ -70,12 +58,10 @@
         <button id="vocab-btn" class="list-btn" style="margin-top:20px;" onpointerdown="startVocabMode()">単語帳モード</button>
         <div class="reset-link" onclick="resetAllData()">学習データをリセット</div>
     </div>
-
     <div id="screen-quiz" class="screen">
         <div id="quiz-question"></div>
         <ul id="options" class="options-list"></ul>
     </div>
-
     <div id="screen-vocab" class="screen">
         <div id="card-container">
             <div class="card" id="card-face">
@@ -86,13 +72,12 @@
                 </div>
             </div>
         </div>
-        <div class="controls" id="v-controls">
+        <div class="controls">
             <button class="action-btn btn-check" onpointerdown="handleVocabResult(false)">まだ...</button>
             <button class="action-btn btn-master" onpointerdown="handleVocabResult(true)">覚えた！</button>
         </div>
     </div>
 </div>
-
 <div id="overlay">
     <div id="modal">
         <div id="modal-message"></div>
@@ -100,25 +85,13 @@
         <button id="modalNextBtn">次へ ▶</button>
     </div>
 </div>
-
 <script>
     let allData = { questions: [], terms: {} };
-    let sessionQueue = [];
-    let vocabQueue = [];
-    let currentIdx = 0;
-    let isAnswerShown = false;
-    let isReviewMode = false;
-
-    const KEY_LEARN = 'itp_v11_learn';
-    const KEY_QCNT  = 'itp_v11_qcnt';
-    const KEY_VCNT  = 'itp_v11_vcnt';
-
+    let sessionQueue = [], vocabQueue = [], currentIdx = 0, isAnswerShown = false, isReviewMode = false;
+    const KEY_LEARN = 'itp_v11_learn', KEY_QCNT = 'itp_v11_qcnt', KEY_VCNT = 'itp_v11_vcnt';
     let learningList = new Set(JSON.parse(localStorage.getItem(KEY_LEARN)) || []);
-    let qCounts = JSON.parse(localStorage.getItem(KEY_QCNT)) || {}; 
-    let vCounts = JSON.parse(localStorage.getItem(KEY_VCNT)) || {}; 
-
+    let qCounts = JSON.parse(localStorage.getItem(KEY_QCNT)) || {}, vCounts = JSON.parse(localStorage.getItem(KEY_VCNT)) || {}; 
     window.onload = init;
-
     async function init() {
         try {
             const [resQ, resT] = await Promise.all([fetch('questions.json'), fetch('terms.json')]);
@@ -127,18 +100,15 @@
             updateVocabButtonState();
         } catch (e) { console.error("Data Load Error"); }
     }
-
     function changeScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         document.getElementById('main-title').style.display = (id === 'screen-home') ? 'block' : 'none';
     }
-
     function updateVocabButtonState() {
         const btn = document.getElementById('vocab-btn');
         if(btn) btn.disabled = (learningList.size === 0);
     }
-
     function startQuiz(cat) {
         sessionQueue = []; vocabQueue = [];
         const filter = (n) => allData.questions.filter(q => q.category === cat && (qCounts[q.id] || 0) === n);
@@ -155,7 +125,6 @@
         }
         currentIdx = 0; changeScreen('screen-quiz'); renderQuiz();
     }
-
     function renderQuiz() {
         const q = sessionQueue[currentIdx];
         document.getElementById('quiz-question').innerHTML = q.question;
@@ -168,7 +137,6 @@
             li.appendChild(b); ul.appendChild(li);
         });
     }
-
     function checkQuiz(idx) {
         const q = sessionQueue[currentIdx];
         const isCorrect = (idx === q.answer);
@@ -187,14 +155,12 @@
         }
         saveData();
     }
-
     function showModal(isCorrect, ans, exp) {
         const msg = document.getElementById('modal-message');
         msg.innerHTML = isCorrect ? '<h2 style="color:var(--green); margin:0;">🟢 正解</h2>' : `<h2 style="color:var(--red); margin:0;">❌ 不正解</h2><p style="margin:5px 0; color:#666;">正解: ${ans}</p>`;
         document.getElementById('modal-explanation').innerText = "解説: " + exp;
         document.getElementById('overlay').style.display = 'flex';
     }
-
     document.getElementById('modalNextBtn').onpointerdown = () => {
         document.getElementById('overlay').style.display = 'none';
         if (++currentIdx < sessionQueue.length) { renderQuiz(); }
@@ -205,7 +171,6 @@
             } else { location.reload(); }
         }
     };
-
     function startVocabMode() {
         const list = Array.from(learningList);
         if (list.length === 0) return;
@@ -219,13 +184,10 @@
         }
         currentIdx = 0; changeScreen('screen-vocab'); renderVocab();
     }
-
     function renderVocab() {
         const tid = vocabQueue[currentIdx];
         const t = allData.terms[tid];
         isAnswerShown = false;
-
-        // 空データのバリデーション
         if (!t) {
             document.getElementById('v-name').innerText = "データ未登録";
             document.getElementById('v-def').innerText = `ID: ${tid} が terms.json にありません。`;
@@ -233,11 +195,9 @@
             document.getElementById('v-name').innerText = t.name || "名称なし";
             document.getElementById('v-def').innerText = t.def || "定義なし";
         }
-
         document.getElementById('v-def').classList.remove('show');
         document.getElementById('v-hint').style.display = 'block';
     }
-
     document.getElementById('card-face').onpointerdown = () => {
         if (!isAnswerShown) {
             isAnswerShown = true;
@@ -245,7 +205,6 @@
             document.getElementById('v-def').classList.add('show');
         }
     };
-
     function handleVocabResult(isMastered) {
         const tid = vocabQueue[currentIdx];
         if (isMastered) {
@@ -264,18 +223,15 @@
         if (currentIdx < vocabQueue.length) renderVocab();
         else location.reload();
     }
-
     function saveData() {
         localStorage.setItem(KEY_LEARN, JSON.stringify(Array.from(learningList)));
         localStorage.setItem(KEY_QCNT, JSON.stringify(qCounts));
         localStorage.setItem(KEY_VCNT, JSON.stringify(vCounts));
         updateVocabButtonState();
     }
-
     function triggerHaptic(good) {
         if (navigator.vibrate) good ? navigator.vibrate(50) : navigator.vibrate([30, 50, 30]);
     }
-
     function resetAllData() { if(confirm("学習記録をリセットしますか？")) { localStorage.clear(); location.reload(); } }
 </script>
 </body>
