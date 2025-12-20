@@ -10,9 +10,14 @@
             --red: #e74c3c; --green: #2ecc71; --text: #333;
             --border: #ccc; --disabled: #bdc3c7;
         }
-        body, button, .card {
+        /* 全要素でのズーム待機を無効化 */
+        body, button, .card, .screen, .options-list, li {
             font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
             touch-action: manipulation; user-select: none; -webkit-tap-highlight-color: transparent;
+        }
+        /* クイズ画面内のすべての要素で個別にズームを禁止 */
+        #screen-quiz * {
+            touch-action: manipulation;
         }
         body { background-color: var(--bg); margin: 0; min-height: 100vh; color: var(--text); overflow-x: hidden; padding-top: env(safe-area-inset-top); }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; padding-bottom: 60px; display: flex; flex-direction: column; align-items: center; }
@@ -27,7 +32,7 @@
         .list-btn:disabled { background: #eee; color: #aaa; border-color: #ccc; cursor: default; box-shadow: none; }
         #quiz-question { margin: 2rem 0 1.5rem; font-size: 1.25rem; font-weight: bold; line-height: 1.6; text-align: left; width: 100%; }
         .options-list { list-style: none; padding: 0; margin: 0; width: 100%; }
-        .options-list li { margin-bottom: 12px; }
+        .options-list li { margin-bottom: 12px; touch-action: manipulation; }
         .options-list button { width: 100%; padding: 1.1rem; font-size: 1.1rem; border: 1px solid var(--border); border-radius: 12px; background: #fff; text-align: left; line-height: 1.4; color: var(--text); }
         #card-container { position: relative; width: 310px; height: 420px; margin-bottom: 30px; }
         .card { width: 100%; height: 100%; background: white; border-radius: 25px; box-shadow: 0 6px 20px rgba(0,0,0,0.06); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 30px; box-sizing: border-box; }
@@ -39,7 +44,7 @@
         .controls { width: 100%; max-width: 320px; display: flex; gap: 15px; }
         .action-btn { flex: 1; height: 65px; border-radius: 35px; font-size: 17px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .btn-check { background-color: #ffe0b2; color: #d35400; }
-        .btn-master { background-color: #c8e6c9; color: #27ae60; }
+        .btn-master { background-color: #c8e6c green; color: #27ae60; }
         #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(240, 242, 245, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: none; z-index: 100; align-items: center; justify-content: center; }
         #modal { background: #fff; padding: 1.8rem; border-radius: 20px; width: 90%; max-width: 420px; border: 1px solid #eee; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         #modal-message { text-align: center; margin-bottom: 10px; }
@@ -93,6 +98,8 @@
     let qCounts = JSON.parse(localStorage.getItem(KEY_QCNT)) || {}, vCounts = JSON.parse(localStorage.getItem(KEY_VCNT)) || {}; 
     window.onload = init;
     async function init() {
+        // ダブルクリックによるズーム挙動をシステムレベルでキャンセル
+        document.addEventListener('dblclick', function(e) { e.preventDefault(); }, { passive: false });
         try {
             const [resQ, resT] = await Promise.all([fetch('questions.json'), fetch('terms.json')]);
             allData.questions = await resQ.json();
@@ -236,4 +243,3 @@
 </script>
 </body>
 </html>
-
