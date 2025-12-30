@@ -10,12 +10,10 @@
             --red: #e74c3c; --green: #2ecc71; --text: #333;
             --border: #ccc; --disabled: #bdc3c7;
         }
-        /* 全要素でのズーム待機を無効化 */
         body, button, .card, .screen, .options-list, li {
             font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
             touch-action: manipulation; user-select: none; -webkit-tap-highlight-color: transparent;
         }
-        /* クイズ画面内のすべての要素で個別にズームを禁止 */
         #screen-quiz * {
             touch-action: manipulation;
         }
@@ -98,7 +96,6 @@
     let qCounts = JSON.parse(localStorage.getItem(KEY_QCNT)) || {}, vCounts = JSON.parse(localStorage.getItem(KEY_VCNT)) || {}; 
     window.onload = init;
     async function init() {
-        // ダブルクリックによるズーム挙動をシステムレベルでキャンセル
         document.addEventListener('dblclick', function(e) { e.preventDefault(); }, { passive: false });
         try {
             const [resQ, resT] = await Promise.all([fetch('questions.json'), fetch('terms.json')]);
@@ -243,3 +240,4 @@
 </script>
 </body>
 </html>
+
