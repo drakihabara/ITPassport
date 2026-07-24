@@ -1,243 +1,354 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>ITパスポート対策</title>
-    <style>
-        :root {
-            --main: #3498db; --bg: #f0f2f5; --card: #ffffff;
-            --red: #e74c3c; --green: #2ecc71; --text: #333;
-            --border: #ccc; --disabled: #bdc3c7;
-        }
-        body, button, .card, .screen, .options-list, li {
-            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
-            touch-action: manipulation; user-select: none; -webkit-tap-highlight-color: transparent;
-        }
-        #screen-quiz * {
-            touch-action: manipulation;
-        }
-        body { background-color: var(--bg); margin: 0; min-height: 100vh; color: var(--text); overflow-x: hidden; padding-top: env(safe-area-inset-top); }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; padding-bottom: 60px; display: flex; flex-direction: column; align-items: center; }
-        .screen { display: none; width: 100%; flex-direction: column; align-items: center; }
-        .active { display: flex; }
-        h1 { font-size: 28px; margin: 20px 0 40px; text-align: center; cursor: pointer; }
-        button { border: none; cursor: pointer; font-weight: bold; transition: transform 0.1s; touch-action: manipulation; }
-        button:active:not(:disabled) { transform: scale(0.96); }
-        .main-btn, .list-btn { width: 280px; padding: 18px 0; border-radius: 30px; font-size: 18px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .main-btn { background: var(--main); color: white; }
-        .list-btn { background: white; color: var(--main); border: 2px solid var(--main); }
-        .list-btn:disabled { background: #eee; color: #aaa; border-color: #ccc; cursor: default; box-shadow: none; }
-        #quiz-question { margin: 2rem 0 1.5rem; font-size: 1.25rem; font-weight: bold; line-height: 1.6; text-align: left; width: 100%; }
-        .options-list { list-style: none; padding: 0; margin: 0; width: 100%; }
-        .options-list li { margin-bottom: 12px; touch-action: manipulation; }
-        .options-list button { width: 100%; padding: 1.1rem; font-size: 1.1rem; border: 1px solid var(--border); border-radius: 12px; background: #fff; text-align: left; line-height: 1.4; color: var(--text); }
-        #card-container { position: relative; width: 310px; height: 420px; margin-bottom: 30px; }
-        .card { width: 100%; height: 100%; background: white; border-radius: 25px; box-shadow: 0 6px 20px rgba(0,0,0,0.06); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 30px; box-sizing: border-box; }
-        .v-name { font-size: 34px; font-weight: bold; color: var(--main); width: 100%; line-height: 1.2; margin-bottom: 20px; }
-        .ja-area { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; position: relative; }
-        .v-def { font-size: 22px; font-weight: bold; color: var(--red); opacity: 0; transition: opacity 0.2s; pointer-events: none; line-height: 1.4; position: absolute; width: 100%; }
-        .v-def.show { opacity: 1; }
-        .hint-text { font-size: 16px; color: #ccc; width: 100%; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
-        .controls { width: 100%; max-width: 320px; display: flex; gap: 15px; }
-        .action-btn { flex: 1; height: 65px; border-radius: 35px; font-size: 17px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .btn-check { background-color: #ffe0b2; color: #d35400; }
-        .btn-master { background-color: #c8e6c green; color: #27ae60; }
-        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(240, 242, 245, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: none; z-index: 100; align-items: center; justify-content: center; }
-        #modal { background: #fff; padding: 1.8rem; border-radius: 20px; width: 90%; max-width: 420px; border: 1px solid #eee; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        #modal-message { text-align: center; margin-bottom: 10px; }
-        #modal-explanation { font-size: 1rem; color: #444; margin-top: 1.2rem; border-top: 1.5px solid #f0f0f0; padding-top: 1.2rem; line-height: 1.6; }
-        #modalNextBtn { width: 100%; padding: 1.1rem; margin-top: 1.8rem; border-radius: 30px; background: var(--main); color: #fff; font-size: 1.1rem; }
-        .reset-link { margin-top: 40px; font-size: 12px; color: #bbb; text-decoration: underline; cursor: pointer; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>ITパスポート 単語帳</title>
+<style>
+  :root{
+    --main:#3498db; --main-d:#2c7cb8; --bg:#f0f2f5;
+    --red:#e74c3c; --green:#27ae60; --amber:#d35400;
+    --text:#333; --muted:#8a94a2; --border:#d7dde3;
+    --untouched:#95a5a6; --notyet:#e67e22; --learned:#3498db; --grad:#27ae60;
+    --cat-st:#f1c40f; --cat-mn:#e74c3c; --cat-tc:#3498db;
+  }
+  *{box-sizing:border-box;}
+  body,button{font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+    touch-action:manipulation; user-select:none; -webkit-tap-highlight-color:transparent;}
+  body{background:var(--bg); margin:0; min-height:100vh; color:var(--text);
+    overflow-x:hidden; padding-top:env(safe-area-inset-top); padding-bottom:env(safe-area-inset-bottom);}
+  .container{max-width:600px; margin:0 auto; padding:20px 20px 40px;
+    display:flex; flex-direction:column; align-items:center;}
+  .screen{display:none; width:100%; flex-direction:column; align-items:center;}
+  .active{display:flex;}
+  button{border:none; cursor:pointer; font-weight:bold; transition:transform .1s;}
+  button:active:not(:disabled){transform:scale(.97);}
+
+  #screen-home{min-height:calc(100vh - 60px);}
+  .app-title{font-size:30px; font-weight:800; margin:34px 0 26px; text-align:center; letter-spacing:.03em;}
+
+  .home-stats{display:flex; gap:10px; width:100%; max-width:340px; margin-bottom:30px;}
+  .home-stat{flex:1; text-align:center; background:#fff; border:1px solid var(--border);
+    border-radius:14px; padding:12px 2px; font-size:12px; color:var(--muted); font-weight:700;}
+  .home-stat b{display:block; font-size:22px; color:var(--text); margin-top:3px; line-height:1;}
+  .home-stat.g b{color:var(--grad);}
+
+  .cat-list{width:100%; max-width:340px; display:flex; flex-direction:column; gap:16px;}
+  .cat-btn{display:flex; align-items:center; justify-content:space-between;
+    width:100%; padding:22px 22px; border-radius:16px; background:#fff;
+    font-size:20px; font-weight:800; color:var(--text); text-align:left;
+    box-shadow:0 4px 12px rgba(0,0,0,.06); border-left:10px solid var(--border);}
+  .cat-btn .count{font-size:13px; font-weight:700; color:var(--muted);}
+  .cat-btn.st{border-left-color:var(--cat-st);}
+  .cat-btn.mn{border-left-color:var(--cat-mn);}
+  .cat-btn.tc{border-left-color:var(--cat-tc);}
+  .cat-btn.disabled{opacity:.32; pointer-events:none; box-shadow:none;}
+
+  .reset-link{position:fixed; left:0; right:0; bottom:calc(18px + env(safe-area-inset-bottom));
+    text-align:center; font-size:12px; color:#b7bcc4; text-decoration:underline; cursor:pointer;}
+
+  .pool-bar{width:100%; max-width:340px; display:flex; gap:6px; margin-bottom:18px; font-size:12px;}
+  .pool-chip{flex:1; text-align:center; padding:7px 2px; border-radius:10px; background:#fff;
+    border:1px solid var(--border); font-weight:700; color:var(--muted); line-height:1.3;}
+  .pool-chip b{display:block; font-size:15px; margin-top:1px; color:var(--text);}
+  .pool-chip.u{border-top:3px solid var(--untouched);}
+  .pool-chip.n{border-top:3px solid var(--notyet);}
+  .pool-chip.l{border-top:3px solid var(--learned);}
+  .pool-chip.g{border-top:3px solid var(--grad);}
+  #card-container{width:310px; height:380px; margin-bottom:26px;}
+  .card{width:100%; height:100%; background:#fff; border-radius:25px;
+    box-shadow:0 6px 20px rgba(0,0,0,.07); display:flex; flex-direction:column;
+    justify-content:center; align-items:center; padding:28px 26px; cursor:pointer;}
+  
+  .slot{width:100%; position:relative; display:flex; align-items:center; justify-content:center; text-align:center;}
+  .slot-word{height:100px;}
+  .slot-def{height:176px;}
+  .slot .txt,.slot .hint{position:absolute; left:0; right:0; padding:0 4px; transition:opacity .18s;}
+  .word-txt{font-size:30px; font-weight:800; color:var(--main); line-height:1.25;}
+  .def-txt{font-size:21px; font-weight:700; color:var(--text); line-height:1.55;}
+  .slot .hint{font-size:15px; font-weight:600; color:#c3ccd4;}
+  .slot .txt{opacity:1;}
+  .slot .hint{opacity:0;}
+  .slot.masked .txt{opacity:0;}
+  .slot.masked .hint{opacity:1;}
+  .slot.no-anim .txt,.slot.no-anim .hint{transition:none;}
+  .divider{width:46px; height:3px; background:#eef1f4; border-radius:2px; margin:18px 0; flex:none;}
+  .controls{width:100%; max-width:320px; display:flex; gap:15px;}
+  .action-btn{flex:1; height:64px; border-radius:34px; font-size:17px;
+    box-shadow:0 4px 10px rgba(0,0,0,.05); transition:opacity .15s, transform .1s;}
+  .action-btn:disabled{opacity:.4; cursor:default;}
+  .btn-notyet{background:#ffe0b2; color:var(--amber);}
+  .btn-master{background:#c8e6c9; color:var(--green);}
+
+  #toast{position:fixed; left:50%; top:38%; transform:translate(-50%,-50%);
+    background:rgba(39,174,96,.96); color:#fff; padding:16px 28px; border-radius:40px;
+    font-size:20px; font-weight:800; box-shadow:0 8px 24px rgba(0,0,0,.18);
+    opacity:0; pointer-events:none; transition:opacity .25s, top .25s; z-index:200;}
+  #toast.show{opacity:1; top:34%;}
+</style>
 </head>
 <body>
 <div class="container">
-    <h1 id="main-title" onclick="location.reload()">ITパスポート</h1>
-    <div id="screen-home" class="screen active">
-        <button class="main-btn" onpointerdown="startQuiz('ストラテジ')">ストラテジ系</button>
-        <button class="main-btn" onpointerdown="startQuiz('マネジメント')">マネジメント系</button>
-        <button class="main-btn" onpointerdown="startQuiz('テクノロジ')">テクノロジ系</button>
-        <button id="vocab-btn" class="list-btn" style="margin-top:20px;" onpointerdown="startVocabMode()">単語帳モード</button>
-        <div class="reset-link" onclick="resetAllData()">学習データをリセット</div>
+
+  <div id="screen-home" class="screen active">
+    <div class="app-title">ITパスポート</div>
+
+    <div class="home-stats">
+      <div class="home-stat">学習中<b id="h-active">0</b></div>
+      <div class="home-stat g">卒業<b id="h-grad">0</b></div>
+      <div class="home-stat">全体<b id="h-total">0</b></div>
     </div>
-    <div id="screen-quiz" class="screen">
-        <div id="quiz-question"></div>
-        <ul id="options" class="options-list"></ul>
+
+    <div class="cat-list">
+      <button class="cat-btn st disabled" id="cat-st" onpointerdown="startVocab('ストラテジ')">
+        <span>ストラテジ系</span><span class="count" id="cnt-st"></span>
+      </button>
+      <button class="cat-btn mn disabled" id="cat-mn" onpointerdown="startVocab('マネジメント')">
+        <span>マネジメント系</span><span class="count" id="cnt-mn"></span>
+      </button>
+      <button class="cat-btn tc disabled" id="cat-tc" onpointerdown="startVocab('テクノロジ')">
+        <span>テクノロジ系</span><span class="count" id="cnt-tc"></span>
+      </button>
     </div>
-    <div id="screen-vocab" class="screen">
-        <div id="card-container">
-            <div class="card" id="card-face">
-                <div class="v-name" id="v-name"></div>
-                <div class="ja-area">
-                    <div class="hint-text" id="v-hint">タップして意味を表示</div>
-                    <div class="v-def" id="v-def"></div>
-                </div>
-            </div>
+
+    <div class="reset-link" onclick="resetAll()">学習データをリセット</div>
+  </div>
+
+  <div id="screen-vocab" class="screen">
+    <div class="pool-bar">
+      <div class="pool-chip u">未着手<b id="c-u">0</b></div>
+      <div class="pool-chip n">まだ<b id="c-n">0</b></div>
+      <div class="pool-chip l">覚えた<b id="c-l">0</b></div>
+      <div class="pool-chip g">卒業<b id="c-g">0</b></div>
+    </div>
+    <div id="card-container">
+      <div class="card" id="card" onpointerdown="revealCard()">
+        <div class="slot slot-word" id="slot-word">
+          <span class="txt word-txt" id="word-txt"></span>
+          <span class="hint">タップして単語を表示</span>
         </div>
-        <div class="controls">
-            <button class="action-btn btn-check" onpointerdown="handleVocabResult(false)">まだ...</button>
-            <button class="action-btn btn-master" onpointerdown="handleVocabResult(true)">覚えた！</button>
+        <div class="divider"></div>
+        <div class="slot slot-def" id="slot-def">
+          <span class="txt def-txt" id="def-txt"></span>
+          <span class="hint">タップして意味を表示</span>
         </div>
+      </div>
     </div>
-</div>
-<div id="overlay">
-    <div id="modal">
-        <div id="modal-message"></div>
-        <div id="modal-explanation"></div>
-        <button id="modalNextBtn">次へ ▶</button>
+    <div class="controls">
+      <button class="action-btn btn-notyet" id="btn-notyet" disabled onpointerdown="answer(false)">まだ...</button>
+      <button class="action-btn btn-master" id="btn-master" disabled onpointerdown="answer(true)">覚えた！</button>
     </div>
+  </div>
+
 </div>
+
+<div id="toast"></div>
+
 <script>
-    let allData = { questions: [], terms: {} };
-    let sessionQueue = [], vocabQueue = [], currentIdx = 0, isAnswerShown = false, isReviewMode = false;
-    const KEY_LEARN = 'itp_v11_learn', KEY_QCNT = 'itp_v11_qcnt', KEY_VCNT = 'itp_v11_vcnt';
-    let learningList = new Set(JSON.parse(localStorage.getItem(KEY_LEARN)) || []);
-    let qCounts = JSON.parse(localStorage.getItem(KEY_QCNT)) || {}, vCounts = JSON.parse(localStorage.getItem(KEY_VCNT)) || {}; 
-    window.onload = init;
-    async function init() {
-        document.addEventListener('dblclick', function(e) { e.preventDefault(); }, { passive: false });
-        try {
-            const [resQ, resT] = await Promise.all([fetch('questions.json'), fetch('terms.json')]);
-            allData.questions = await resQ.json();
-            allData.terms = await resT.json();
-            updateVocabButtonState();
-        } catch (e) { console.error("Data Load Error"); }
-    }
-    function changeScreen(id) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        document.getElementById('main-title').style.display = (id === 'screen-home') ? 'block' : 'none';
-    }
-    function updateVocabButtonState() {
-        const btn = document.getElementById('vocab-btn');
-        if(btn) btn.disabled = (learningList.size === 0);
-    }
-    function startQuiz(cat) {
-        sessionQueue = []; vocabQueue = [];
-        const filter = (n) => allData.questions.filter(q => q.category === cat && (qCounts[q.id] || 0) === n);
-        const pick = (target, needed, n) => {
-            let pool = filter(n).filter(x => !target.includes(x));
-            return pool.sort(() => Math.random() - 0.5).slice(0, needed);
-        };
-        sessionQueue.push(...pick([], 7, 0));
-        sessionQueue.push(...pick(sessionQueue, 2, 1));
-        sessionQueue.push(...pick(sessionQueue, 1, 2));
-        if (sessionQueue.length < 10) {
-            let others = allData.questions.filter(q => q.category === cat && !sessionQueue.includes(q) && (qCounts[q.id] || 0) < 3).sort(() => Math.random() - 0.5);
-            sessionQueue.push(...others.slice(0, 10 - sessionQueue.length));
-        }
-        currentIdx = 0; changeScreen('screen-quiz'); renderQuiz();
-    }
-    function renderQuiz() {
-        const q = sessionQueue[currentIdx];
-        document.getElementById('quiz-question').innerHTML = q.question;
-        const ul = document.getElementById('options'); ul.innerHTML = '';
-        q.options.forEach((opt, i) => {
-            const li = document.createElement('li');
-            const b = document.createElement('button');
-            b.innerText = opt;
-            b.onpointerdown = () => checkQuiz(i);
-            li.appendChild(b); ul.appendChild(li);
-        });
-    }
-    function checkQuiz(idx) {
-        const q = sessionQueue[currentIdx];
-        const isCorrect = (idx === q.answer);
-        const tIds = q.term_ids || [];
-        if (isCorrect) {
-            qCounts[q.id] = (qCounts[q.id] || 0) + 1;
-            if (qCounts[q.id] >= 3) { tIds.forEach(tid => learningList.delete(tid)); }
-            showModal(true, "", q.explanation);
-        } else {
-            qCounts[q.id] = 0;
-            tIds.forEach(tid => {
-                vCounts[tid] = 0; learningList.add(tid);
-                if (!vocabQueue.includes(tid)) vocabQueue.push(tid);
-            });
-            showModal(false, q.options[q.answer], q.explanation);
-        }
-        saveData();
-    }
-    function showModal(isCorrect, ans, exp) {
-        const msg = document.getElementById('modal-message');
-        msg.innerHTML = isCorrect ? '<h2 style="color:var(--green); margin:0;">🟢 正解</h2>' : `<h2 style="color:var(--red); margin:0;">❌ 不正解</h2><p style="margin:5px 0; color:#666;">正解: ${ans}</p>`;
-        document.getElementById('modal-explanation').innerText = "解説: " + exp;
-        document.getElementById('overlay').style.display = 'flex';
-    }
-    document.getElementById('modalNextBtn').onpointerdown = () => {
-        document.getElementById('overlay').style.display = 'none';
-        if (++currentIdx < sessionQueue.length) { renderQuiz(); }
-        else {
-            if (vocabQueue.length > 0) {
-                currentIdx = 0; isReviewMode = true;
-                changeScreen('screen-vocab'); renderVocab();
-            } else { location.reload(); }
-        }
-    };
-    function startVocabMode() {
-        const list = Array.from(learningList);
-        if (list.length === 0) return;
-        isReviewMode = false; vocabQueue = [];
-        const pickV = (needed, n) => list.filter(tid => (vCounts[tid] || 0) === n).sort(() => Math.random() - 0.5).slice(0, needed);
-        vocabQueue.push(...pickV(7, 0));
-        vocabQueue.push(...pickV(2, 1));
-        vocabQueue.push(...pickV(1, 2));
-        if (vocabQueue.length < 10 && list.length > vocabQueue.length) {
-            vocabQueue.push(...list.filter(t => !vocabQueue.includes(t)).sort(() => Math.random() - 0.5).slice(0, 10 - vocabQueue.length));
-        }
-        currentIdx = 0; changeScreen('screen-vocab'); renderVocab();
-    }
-    function renderVocab() {
-        const tid = vocabQueue[currentIdx];
-        const t = allData.terms[tid];
-        isAnswerShown = false;
-        if (!t) {
-            document.getElementById('v-name').innerText = "データ未登録";
-            document.getElementById('v-def').innerText = `ID: ${tid} が terms.json にありません。`;
-        } else {
-            document.getElementById('v-name').innerText = t.name || "名称なし";
-            document.getElementById('v-def').innerText = t.def || "定義なし";
-        }
-        document.getElementById('v-def').classList.remove('show');
-        document.getElementById('v-hint').style.display = 'block';
-    }
-    document.getElementById('card-face').onpointerdown = () => {
-        if (!isAnswerShown) {
-            isAnswerShown = true;
-            document.getElementById('v-hint').style.display = 'none';
-            document.getElementById('v-def').classList.add('show');
-        }
-    };
-    function handleVocabResult(isMastered) {
-        const tid = vocabQueue[currentIdx];
-        if (isMastered) {
-            triggerHaptic(true);
-            if (!isReviewMode) {
-                vCounts[tid] = (vCounts[tid] || 0) + 1;
-                if (vCounts[tid] >= 3) learningList.delete(tid);
-            }
-            currentIdx++;
-        } else {
-            triggerHaptic(false);
-            vCounts[tid] = 0;
-            vocabQueue.push(vocabQueue.splice(currentIdx, 1)[0]);
-        }
-        saveData();
-        if (currentIdx < vocabQueue.length) renderVocab();
-        else location.reload();
-    }
-    function saveData() {
-        localStorage.setItem(KEY_LEARN, JSON.stringify(Array.from(learningList)));
-        localStorage.setItem(KEY_QCNT, JSON.stringify(qCounts));
-        localStorage.setItem(KEY_VCNT, JSON.stringify(vCounts));
-        updateVocabButtonState();
-    }
-    function triggerHaptic(good) {
-        if (navigator.vibrate) good ? navigator.vibrate(50) : navigator.vibrate([30, 50, 30]);
-    }
-    function resetAllData() { if(confirm("学習記録をリセットしますか？")) { localStorage.clear(); location.reload(); } }
+
+const P = {UNTOUCHED:"未着手", NOTYET:"まだ", LEARNED:"覚えた", GRAD:"卒業"};
+const GRAD_COUNT = 2;
+const BATCH = 5;
+const RATIO = {[P.UNTOUCHED]:2, [P.NOTYET]:2, [P.LEARNED]:1};
+const KEY_VOCAB = "itp_vocab_v1";
+
+const PREFIX_CAT = {st:"ストラテジ", mn:"マネジメント", tc:"テクノロジ"};
+const CAT_BTN = {"ストラテジ":"cat-st", "マネジメント":"cat-mn", "テクノロジ":"cat-tc"};
+const CAT_CNT = {"ストラテジ":"cnt-st", "マネジメント":"cnt-mn", "テクノロジ":"cnt-tc"};
+
+let TERMS = {};
+let progress = {};
+let activeCat = null;
+let batch = [], batchIdx = 0, revealed = false;
+let answeredInSession = 0, gradThisSession = 0;
+
+window.onload = init;
+async function init(){
+  document.addEventListener('dblclick', e=>e.preventDefault(), {passive:false});
+  progress = load(KEY_VOCAB, {});
+  try{
+    const r = await fetch('terms.json'); TERMS = await r.json();
+  }catch(e){ TERMS = {}; }
+  refreshHome();
+}
+
+function catOf(id){ return PREFIX_CAT[String(id).split('_')[0]] || null; }
+function idsInCat(cat){ return Object.keys(TERMS).filter(id=>catOf(id)===cat); }
+function catCount(cat){ return idsInCat(cat).length; }
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function goHome(){ refreshHome(); show('screen-home'); }
+
+function refreshHome(){
+
+  const allIds = Object.keys(TERMS);
+  let active=0, grad=0;
+  for(const id of allIds){
+    const p = stateOf(id).pool;
+    if(p===P.NOTYET || p===P.LEARNED) active++;
+    else if(p===P.GRAD) grad++;
+  }
+  document.getElementById('h-active').textContent = active;
+  document.getElementById('h-grad').textContent   = grad;
+  document.getElementById('h-total').textContent  = allIds.length;
+
+  for(const cat in CAT_BTN){
+    const n = catCount(cat);
+    const btn = document.getElementById(CAT_BTN[cat]);
+    const cnt = document.getElementById(CAT_CNT[cat]);
+    if(n>0){ btn.classList.remove('disabled'); cnt.textContent = n + "語"; }
+    else   { btn.classList.add('disabled');    cnt.textContent = ""; }
+  }
+}
+
+function stateOf(id){
+  if(!progress[id]) progress[id] = {pool:P.UNTOUCHED, count:0};
+  return progress[id];
+}
+function idsInPool(pool){
+  return idsInCat(activeCat).filter(id=>stateOf(id).pool===pool);
+}
+function poolCounts(){
+  const c = {[P.UNTOUCHED]:0,[P.NOTYET]:0,[P.LEARNED]:0,[P.GRAD]:0};
+  for(const id of idsInCat(activeCat)) c[stateOf(id).pool]++;
+  return c;
+}
+function dirOf(pool){
+  return (pool===P.UNTOUCHED||pool===P.NOTYET) ? "w2m" : "m2w";
+}
+
+function startVocab(cat){
+  if(catCount(cat)===0) return;
+  activeCat = cat;
+  answeredInSession = 0; gradThisSession = 0;
+  show('screen-vocab');
+  buildBatch();
+  renderCard();
+}
+
+function buildBatch(){
+  batch = []; batchIdx = 0;
+  const grouped = {};
+  for(const p of [P.UNTOUCHED,P.NOTYET,P.LEARNED,P.GRAD]) grouped[p]=shuffle(idsInPool(p));
+  const take=(pool,n)=>{
+    const pick = grouped[pool].filter(id=>!batch.includes(id)).slice(0,n);
+    batch.push(...pick);
+  };
+  take(P.UNTOUCHED, RATIO[P.UNTOUCHED]);
+  take(P.NOTYET,    RATIO[P.NOTYET]);
+  take(P.LEARNED,   RATIO[P.LEARNED]);
+  for(const p of [P.NOTYET,P.LEARNED,P.UNTOUCHED,P.GRAD]){
+    if(batch.length>=BATCH) break;
+    take(p, BATCH-batch.length);
+  }
+  batch = shuffle(batch);
+}
+
+let answerSlot = null;
+function renderCard(){
+  revealed = false;
+  updatePoolBar();
+  const id = batch[batchIdx];
+  const t = TERMS[id];
+  const dir = dirOf(stateOf(id).pool);
+  const slotWord = document.getElementById('slot-word');
+  const slotDef  = document.getElementById('slot-def');
+
+  slotWord.classList.add('no-anim');
+  slotDef.classList.add('no-anim');
+  slotWord.classList.add('masked');
+  slotDef.classList.add('masked');
+
+  document.getElementById('word-txt').textContent = t.name;
+  document.getElementById('def-txt').textContent  = t.def;
+
+  if(dir==="w2m"){
+    slotWord.classList.remove('masked'); answerSlot = slotDef;
+  }else{
+    slotDef.classList.remove('masked');  answerSlot = slotWord;
+  }
+
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    slotWord.classList.remove('no-anim');
+    slotDef.classList.remove('no-anim');
+  }));
+  setJudge(false);
+}
+function revealCard(){
+  if(revealed) return;
+  revealed = true;
+  if(answerSlot) answerSlot.classList.remove('masked');
+  setJudge(true);
+}
+function setJudge(on){
+  document.getElementById('btn-notyet').disabled = !on;
+  document.getElementById('btn-master').disabled = !on;
+}
+
+function answer(correct){
+  if(!revealed) return;
+  const s = stateOf(batch[batchIdx]);
+  switch(s.pool){
+    case P.UNTOUCHED:
+      if(correct){ s.pool=P.LEARNED; s.count=0; } else { s.pool=P.NOTYET; s.count=0; }
+      break;
+    case P.NOTYET:
+      if(correct){ s.pool=P.LEARNED; s.count=0; } else { s.pool=P.NOTYET; s.count=0; }
+      break;
+    case P.LEARNED:
+      if(correct){
+        s.count++;
+        if(s.count>=GRAD_COUNT){ s.pool=P.GRAD; s.count=GRAD_COUNT; gradThisSession++; }
+      }else{ s.pool=P.NOTYET; s.count=0; }
+      break;
+    case P.GRAD:
+      if(!correct){ s.pool=P.NOTYET; s.count=0; }
+      break;
+  }
+  save(KEY_VOCAB, progress);
+  haptic(correct);
+  next();
+}
+
+function next(){
+  answeredInSession++;
+  batchIdx++;
+  if(answeredInSession % BATCH === 0){
+    const msg = gradThisSession>0 ? `${gradThisSession}語マスター！` : `${answeredInSession}問クリア！`;
+    toast(msg);
+  }
+  if(batchIdx >= batch.length){ buildBatch(); }
+  renderCard();
+}
+
+function updatePoolBar(){
+  const c = poolCounts();
+  document.getElementById('c-u').textContent = c[P.UNTOUCHED];
+  document.getElementById('c-n').textContent = c[P.NOTYET];
+  document.getElementById('c-l').textContent = c[P.LEARNED];
+  document.getElementById('c-g').textContent = c[P.GRAD];
+}
+
+let toastTimer=null;
+function toast(text){
+  const el=document.getElementById('toast');
+  el.textContent=text; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.remove('show'), 1100);
+}
+
+function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];} return a; }
+function load(key,def){ try{return JSON.parse(localStorage.getItem(key))||def;}catch(e){return def;} }
+function save(key,val){ try{localStorage.setItem(key,JSON.stringify(val));}catch(e){} }
+function haptic(good){ if(navigator.vibrate) good?navigator.vibrate(45):navigator.vibrate([25,45,25]); }
+function resetAll(){
+  if(confirm("学習記録をリセットしますか？")){
+    localStorage.removeItem(KEY_VOCAB); progress={}; refreshHome(); toast("リセットしました");
+  }
+}
 </script>
 </body>
 </html>
-
