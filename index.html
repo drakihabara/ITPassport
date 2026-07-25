@@ -66,6 +66,7 @@
   .slot .txt,.slot .hint{position:absolute; left:0; right:0; padding:0 4px; transition:opacity .18s;}
   .word-txt{font-size:30px; font-weight:800; color:var(--main); line-height:1.25;}
   .def-txt{font-size:21px; font-weight:700; color:var(--text); line-height:1.55; text-align:justify;}
+  .def-txt .em{color:var(--main); font-weight:800;}
   .slot .hint{font-size:15px; font-weight:600; color:#c3ccd4;}
   .slot .txt{opacity:1;}
   .slot .hint{opacity:0;}
@@ -263,7 +264,7 @@ function renderCard(){
   slotDef.classList.add('masked');
 
   document.getElementById('word-txt').textContent = t.name;
-  document.getElementById('def-txt').textContent  = t.def;
+  document.getElementById('def-txt').innerHTML  = fmt(t.def);
 
   if(dir==="w2m"){
     slotWord.classList.remove('masked'); answerSlot = slotDef;
@@ -340,6 +341,10 @@ function toast(text){
   toastTimer=setTimeout(()=>el.classList.remove('show'), 1100);
 }
 
+function fmt(s){
+  const esc=String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return esc.replace(/\*\*(.+?)\*\*/g,'<b class="em">$1</b>');
+}
 function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];} return a; }
 function load(key,def){ try{return JSON.parse(localStorage.getItem(key))||def;}catch(e){return def;} }
 function save(key,val){ try{localStorage.setItem(key,JSON.stringify(val));}catch(e){} }
